@@ -3,8 +3,6 @@ import FlightCard from './components/FlightCard'
 import './App.css'
 
 function App() {
-
-
   return (
     <>
      
