@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<AirportService>();
 
 //httpClient - za povezivanje s Amadeus API
 builder.Services.AddHttpClient("Amadeus", client =>
@@ -44,10 +45,20 @@ app.UseHttpsRedirection();
 
 //ENDPOINTS
 
-app.MapGet("/flights", async (string origin, string destination, string date, AmadeusService amadeusService) =>
+
+app.MapGet("/flights", async (string origin, string destination, string date, AmadeusService amadeusService, AirportService airportService) =>
 {
+    origin = airportService.GetIataCode(origin);
+    destination = airportService.GetIataCode(destination);
+
     var flights = await amadeusService.SearchFlightsAsync(origin, destination, date);
     return Results.Ok(flights);
+});
+
+app.MapGet("/search-airports", (string query, AirportService airportService) =>
+{
+    var matchingAirports = airportService.SearchAirports(query);
+    return Results.Ok(matchingAirports);
 });
 
 app.Run();
