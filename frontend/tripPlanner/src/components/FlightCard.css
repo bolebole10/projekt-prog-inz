@@ -1,0 +1,48 @@
+.flight-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 50px;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    height: 200px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Roboto', sans-serif;
+}
+
+.flight-card-s {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    margin: 0 10px;
+}
+
+.flight-card-s-icon {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+.flight-card-s-text h2 {
+    font-size: 1.4rem;
+    color: #495057;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.flight-card-s-text p {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+.flight-card-s h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #343a40;
+    text-decoration: underline;
+    margin: 10px 0;
+}
