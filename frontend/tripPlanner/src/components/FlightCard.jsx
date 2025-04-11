@@ -12,6 +12,7 @@ const FlightCard = () => {
     const flightNumber = "XY123";
 
     return (
+        <div className="flight-card-container">
        <div className="flight-card">
             <div className="flight-card-s">
                 <div className="flight-card-s-icon">
@@ -36,6 +37,7 @@ const FlightCard = () => {
                     <FontAwesomeIcon icon={faPlaneArrival} />
                 </div>
             </div>
+       </div>
        </div>
     );
 };
