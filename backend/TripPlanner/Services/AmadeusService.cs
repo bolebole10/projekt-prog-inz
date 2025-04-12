@@ -46,6 +46,17 @@ namespace WebApplication1.Services
 
             return await response.Content.ReadFromJsonAsync<JsonElement>();
         }
+
+        public async Task<JsonElement> SearchFlightsWithReturnAsync(string origin, string destination, string departureDate, string returnDate)
+        {
+            var token = await GetAccessTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync($"/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={departureDate}&returnDate={returnDate}&adults=1");
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<JsonElement>();
+        }
     }
 
 }

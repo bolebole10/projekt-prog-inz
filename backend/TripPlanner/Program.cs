@@ -64,6 +64,18 @@ app.MapGet("/flights", async (string origin, string destination, string date, Am
     var flights = await amadeusService.SearchFlightsAsync(origin, destination, date);
     return Results.Ok(flights);
 });
+
+//LETOVI SA POVRATKOM
+app.MapGet("/flights-return", async (string origin, string destination, string departureDate, string returnDate, AmadeusService amadeusService, AirportService airportService) =>
+{
+    origin = airportService.GetIataCode(origin);
+    destination = airportService.GetIataCode(destination);
+
+    var flights = await amadeusService.SearchFlightsWithReturnAsync(origin, destination, departureDate, returnDate);
+    return Results.Ok(flights);
+});
+
+
 //PRETRAZIVANJE SVIH AERODROMA PREMA IMENU GRADA
 app.MapGet("/search-airports", (string query, AirportService airportService) =>
 {
