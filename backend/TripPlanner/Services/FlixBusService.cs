@@ -1,5 +1,7 @@
 using TripPlanner.Models;
+using System.Net.Http.Headers;
 using System.Text.Json;
+
 
 public class FlixBusService
 {
@@ -10,19 +12,19 @@ public class FlixBusService
         _httpClient = httpClientFactory.CreateClient("FlixBus");
     }
 
-    public async Task<string> SearchTripsAsync(string fromId, string toId, string date)
+    public async Task<JsonElement> SearchTripsAsync(string fromId, string toId, string date)
     {
         var url = $"trips?from_id={fromId}&to_id={toId}&date={date}&adult=1&children=0&bikes=0&search_by=cities&currency=EUR&locale=en";
+
+        _httpClient.DefaultRequestHeaders.Accept.Clear();
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
         var response = await _httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
 
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"FlixBus API error: {response.StatusCode} - {error}");
-        }
-
-        return await response.Content.ReadAsStringAsync();
+        return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
+
 
 
     public async Task<List<FlixBusAutocompleteResult>> AutocompleteCityAsync(string query)
