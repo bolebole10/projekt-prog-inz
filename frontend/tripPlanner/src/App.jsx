@@ -1,12 +1,10 @@
-import { useState } from "react";
-import FlightCard from "./components/FlightCard";
-import SearchComponent from "./components/SearchComponent";
+import LandingPage from "./components/LandingPage";
 import "./App.css";
 
 function App() {
   return (
     <>
-      <SearchComponent />
+      <LandingPage/>
     </>
   );
 }

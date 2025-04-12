@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BACKEND_PORT } from "../config";
+import FlightCard from "./FlightCard"; 
 
 const SearchComponent = () => {
   // Input field displayed values
@@ -19,6 +20,10 @@ const SearchComponent = () => {
   const [filteredAirports, setFilteredAirports] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Add new state for search results
+  const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Function to fetch airport suggestions for both fields
   const fetchAirports = async (query) => {
@@ -117,6 +122,7 @@ const SearchComponent = () => {
     }
 
     setIsSearching(true);
+    setHasSearched(true);
 
     try {
       // Build query parameters
@@ -137,21 +143,29 @@ const SearchComponent = () => {
 
       if (!response.ok) throw new Error("Search failed");
 
-      const searchResults = await response.json();
+      const results = await response.json();
+      console.log("Raw API response:", JSON.stringify(results, null, 2));
 
-      //here you can handle the search results
-
-      console.log("Search results:", searchResults);
+      // Add this code to see if any results are being processed
+      if (results && results.data) {
+        console.log("Flight data found:", results.data.length);
+        setSearchResults(results.data); // Directly use results.data for simplicity
+        setHasSearched(true);
+      } else {
+        console.log("No flight data found in the response");
+        setSearchResults([]);
+      }
     } catch (error) {
       console.error("Error performing search:", error);
       alert("Search failed. Please try again.");
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
   };
 
   return (
-    <div className="py-20 h-screen bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 px-4">
+    <div className="py-20 min-h-screen bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 px-4">
       <div className="max-w-3xl mx-auto rounded-xl shadow-xl bg-white/90 backdrop-blur-md p-6 search-component">
         <h2 className="text-2xl font-bold text-teal-700 mb-6 text-center">
           Plan Your Journey 🌍
@@ -330,6 +344,74 @@ const SearchComponent = () => {
           </button>
         </div>
       </div>
+
+      {/* Display search results */}
+      {hasSearched && (
+        <div className="max-w-4xl mx-auto mt-8">
+          <h2 className="text-xl font-bold text-teal-700 mb-4">
+            {isSearching
+              ? "Searching for flights..."
+              : Array.isArray(searchResults) && searchResults.length > 0
+              ? "Available Flights"
+              : searchResults?.outboundFlights?.length > 0
+              ? "Available Flights"
+              : "No flights found for your search criteria"}
+          </h2>
+
+          {/* Display flight cards */}
+          {isSearching ? (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-teal-600"></div>
+              <p className="mt-2 text-teal-600">
+                Searching for the best flights...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Handle array response format */}
+              {Array.isArray(searchResults) &&
+                searchResults.map((flight, index) => (
+                  <FlightCard
+                    key={index}
+                    flight={flight}
+                    originAirport={selectedLocation}
+                    destinationAirport={selectedDestination}
+                    isReturn={false}
+                  />
+                ))}
+
+              {/* Handle object with outbound/return flights format */}
+              {searchResults?.outboundFlights?.map((flight, index) => (
+                <FlightCard
+                  key={`out-${index}`}
+                  flight={flight}
+                  originAirport={selectedLocation}
+                  destinationAirport={selectedDestination}
+                  isReturn={false}
+                />
+              ))}
+
+              {/* Show return flights header if there are any return flights */}
+              {searchResults?.returnFlights?.length > 0 && (
+                <h3 className="text-lg font-bold text-teal-600 mt-8 mb-4">
+                  Return Flights
+                </h3>
+              )}
+
+              {/* Return flights */}
+              {searchResults?.returnFlights?.map((flight, index) => (
+                <FlightCard
+                  key={`ret-${index}`}
+                  flight={flight}
+                  originAirport={selectedDestination} // Note the reversed airports for return flights
+                  destinationAirport={selectedLocation}
+                  isReturn={true}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
