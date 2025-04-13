@@ -31,6 +31,12 @@ const SearchComponent = () => {
 
   // State for active tab (flights or buses)
   const [activeTab, setActiveTab] = useState("flights");
+  
+  // Pagination state
+  const [visibleFlights, setVisibleFlights] = useState(10);
+  const [visibleOutboundFlights, setVisibleOutboundFlights] = useState(10);
+  const [visibleReturnFlights, setVisibleReturnFlights] = useState(10);
+  const [visibleBuses, setVisibleBuses] = useState(10);
 
   // Function to fetch airport suggestions for both fields
   const fetchAirports = async (query) => {
@@ -116,6 +122,19 @@ const SearchComponent = () => {
     }
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    resetPagination();
+  };
+
+  // Reset pagination when changing tabs or performing new search
+  const resetPagination = () => {
+    setVisibleFlights(10);
+    setVisibleOutboundFlights(10);
+    setVisibleReturnFlights(10);
+    setVisibleBuses(10);
+  };
+
   // Format date for bus parameters (from YYYY-MM-DD to DD.M.YYYY)
   const formatDateForBus = (dateString) => {
     const date = new Date(dateString);
@@ -127,20 +146,19 @@ const SearchComponent = () => {
   
   // Function to handle the search submission
   const handleSearch = async () => {
-    // Reset to flights tab when performing a new search
-    setActiveTab("flights");
-    if (
-      !selectedLocation ||
-      !selectedDestination ||
-      !fromDate ||
-      (tripType === "roundTrip" && !toDate)
-    ) {
+    if (!selectedLocation || !selectedDestination || !fromDate) {
       alert("Please fill in all required fields");
+      return;
+    }
+
+    if (tripType === "roundTrip" && !toDate) {
+      alert("Please select a return date");
       return;
     }
 
     setIsSearching(true);
     setHasSearched(true);
+    resetPagination();
 
     try {
       // Build query parameters
@@ -394,7 +412,7 @@ const SearchComponent = () => {
           <div className="flex justify-center mb-8">
             <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
               <button
-                onClick={() => setActiveTab("flights")}
+                onClick={() => handleTabChange("flights")}
                 className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
                   activeTab === "flights"
                     ? "bg-white text-teal-600 shadow-sm transform scale-105"
@@ -404,7 +422,7 @@ const SearchComponent = () => {
                 <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
               </button>
               <button
-                onClick={() => setActiveTab("buses")}
+                onClick={() => handleTabChange("buses")}
                 className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
                   activeTab === "buses"
                     ? "bg-white text-teal-600 shadow-sm transform scale-105"
@@ -446,7 +464,7 @@ const SearchComponent = () => {
                 <>
                   {/* Handle array response format */}
                   {Array.isArray(flightSearchResults) &&
-                    flightSearchResults.map((flight, index) => (
+                    flightSearchResults.slice(0, visibleFlights).map((flight, index) => (
                       <FlightCard
                         key={index}
                         flight={flight}
@@ -455,9 +473,21 @@ const SearchComponent = () => {
                         isReturn={false}
                       />
                     ))}
+                    
+                  {/* Load more button for array format */}
+                  {Array.isArray(flightSearchResults) && flightSearchResults.length > visibleFlights && (
+                    <div className="text-center mt-6">
+                      <button 
+                        onClick={() => setVisibleFlights(prev => prev + 10)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                      >
+                        Load More Results
+                      </button>
+                    </div>
+                  )}
 
                   {/* Handle object with outbound/return flights format */}
-                  {flightSearchResults?.outboundFlights?.map(
+                  {flightSearchResults?.outboundFlights?.slice(0, visibleOutboundFlights).map(
                     (flight, index) => (
                       <FlightCard
                         key={`out-${index}`}
@@ -468,6 +498,18 @@ const SearchComponent = () => {
                       />
                     )
                   )}
+                  
+                  {/* Load more button for outbound flights */}
+                  {flightSearchResults?.outboundFlights?.length > visibleOutboundFlights && (
+                    <div className="text-center mt-6">
+                      <button 
+                        onClick={() => setVisibleOutboundFlights(prev => prev + 10)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                      >
+                        Load More Outbound Flights
+                      </button>
+                    </div>
+                  )}
 
                   {/* Show return flights header if there are any return flights */}
                   {flightSearchResults?.returnFlights?.length > 0 && (
@@ -477,7 +519,7 @@ const SearchComponent = () => {
                   )}
 
                   {/* Return flights */}
-                  {flightSearchResults?.returnFlights?.map((flight, index) => (
+                  {flightSearchResults?.returnFlights?.slice(0, visibleReturnFlights).map((flight, index) => (
                     <FlightCard
                       key={`ret-${index}`}
                       flight={flight}
@@ -486,6 +528,18 @@ const SearchComponent = () => {
                       isReturn={true}
                     />
                   ))}
+                  
+                  {/* Load more button for return flights */}
+                  {flightSearchResults?.returnFlights?.length > visibleReturnFlights && (
+                    <div className="text-center mt-6">
+                      <button 
+                        onClick={() => setVisibleReturnFlights(prev => prev + 10)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                      >
+                        Load More Return Flights
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -493,12 +547,26 @@ const SearchComponent = () => {
               {activeTab === "buses" && (
                 <div className="space-y-6">
                   {Array.isArray(busSearchResults) && busSearchResults.length > 0 ? (
-                    busSearchResults.map((journey, index) => (
-                      <BusCard
-                        key={index}
-                        journey={journey}
-                      />
-                    ))
+                    <>
+                      {busSearchResults.slice(0, visibleBuses).map((journey, index) => (
+                        <BusCard
+                          key={index}
+                          journey={journey}
+                        />
+                      ))}
+                      
+                      {/* Load more button for buses */}
+                      {busSearchResults.length > visibleBuses && (
+                        <div className="text-center mt-6">
+                          <button 
+                            onClick={() => setVisibleBuses(prev => prev + 10)}
+                            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                          >
+                            Load More Bus Routes
+                          </button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
                       <p className="text-gray-600">No bus routes found for this journey.</p>
