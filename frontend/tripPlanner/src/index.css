@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.landing-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.landing-page section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
