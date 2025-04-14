@@ -9,22 +9,26 @@ const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("destinations");
   return (
     <div className="landing-page bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 min-h-screen">
-      {/* Hero section
-      <header className="bg-gradient-to-r from-teal-500 via-blue-500 to-blue-600 text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-pattern opacity-10"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="mb-2">
-            <FontAwesomeIcon icon={faPlane} className="text-4xl text-white mb-4 transform -rotate-45" />
+      <header className="bg-gradient-to-r from-teal-500 to-teal-600 text-white py-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-teal-300"></div>
+        <div className="absolute -right-16 -top-16 w-64 h-64 bg-teal-400 rounded-full opacity-20"></div>
+        <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-blue-400 rounded-full opacity-20"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="flex items-center mb-6 md:mb-0">
+              <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm mr-4">
+                <FontAwesomeIcon icon={faPlane} className="text-2xl text-white" />
+              </div>
+              <h1 className="text-3xl font-bold">Trip Planner</h1>
+            </div>
+            
+            <p className="text-lg max-w-md text-center md:text-right text-teal-50">
+              Find and compare the best flight and bus deals for your next trip
+            </p>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
-            Find Your Perfect Flight
-          </h1>
-          <p className="text-xl md:text-2xl max-w-2xl mx-auto font-light">
-            Discover amazing destinations and book your next adventure with our easy-to-use flight search tool.
-          </p>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-blue-100 opacity-30"></div>
-      </header> */}
+      </header>
 
       {/* Search component section */}
       <section className="pb-16 pt-6">
