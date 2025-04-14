@@ -5,6 +5,7 @@ import BusCard from "./BusCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlane, faBus, faFilter } from "@fortawesome/free-solid-svg-icons";
 import { sortFlightResults, sortBusResults } from "../services/sortingService";
+import { searchAirports, searchFlights, searchBuses } from "../services/apiService";
 
 const SearchComponent = () => {
   // Input field displayed values
@@ -51,14 +52,7 @@ const SearchComponent = () => {
 
     setIsLoadingAirports(true);
     try {
-      const response = await fetch(
-        `http://localhost:${BACKEND_PORT}/search-airports?query=${encodeURIComponent(
-          query
-        )}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch airports");
-
-      const data = await response.json();
+      const data = await searchAirports(query);
       setFilteredAirports(data || []);
     } catch (error) {
       console.error("Error fetching airports:", error);
@@ -139,17 +133,6 @@ const SearchComponent = () => {
     setVisibleBuses(10);
   };
   
-
-
-  // Format date for bus parameters (from YYYY-MM-DD to DD.M.YYYY)
-  const formatDateForBus = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`; //always like 13.04.2025
-  };
-  
   // Function to handle the search submission
   const handleSearch = async () => {
     if (!selectedLocation || !selectedDestination || !fromDate) {
@@ -167,59 +150,39 @@ const SearchComponent = () => {
     resetPagination();
 
     try {
-      // Build query parameters
-      const params = new URLSearchParams({
-        origin: selectedLocation.iataCode,
-        destination: selectedDestination.iataCode,
-        date: fromDate,
-      });
-
-      // Create bus parameters with formatted date
-      const busParams = new URLSearchParams({
+      // Search for buses
+      const busParams = {
         from: selectedLocation.city,
         to: selectedDestination.city,
-        date: formatDateForBus(fromDate),
-      });
-
-      // Fetch bus data
-      const busResponse = await fetch(
-        `http://localhost:${BACKEND_PORT}/flixbus/trips-by-city?${busParams.toString()}`
-      );
+        date: fromDate,
+      };
       
-      if (!busResponse.ok) throw new Error("Bus search failed");
-      const busResults = await busResponse.json();
+      const busResults = await searchBuses(busParams);
       
-
       if (busResults && busResults.journeys) {
         setBusSearchResults(busResults.journeys);
       } else {
-        console.log("No bus data found in the response");
         setBusSearchResults([]);
       }
 
-      // Add return date only for round trips
+      // Search for flights
+      const flightParams = {
+        origin: selectedLocation.iataCode,
+        destination: selectedDestination.iataCode,
+        date: fromDate,
+      };
+      
+      // Add return date for round trips
       if (tripType === "roundTrip") {
-        params.append("returnDate", toDate);
+        flightParams.returnDate = toDate;
       }
-
-      const flightResponse = await fetch(
-        `http://localhost:${BACKEND_PORT}/flights?${params.toString()}`
-      );
-
-      if (!flightResponse.ok) throw new Error("Search failed");
-
-      const flightResults = await flightResponse.json();
-
-      if (flightResults && flightResults.data) {
-        setFlightSearchResults(flightResults.data);
-        setHasSearched(true);
-      } else {
-        console.log("No flight data found in the response");
-        setFlightSearchResults([]);
-      }
+      
+      const flightResults = await searchFlights(flightParams);
+      console.log(flightResults.data);
+      setFlightSearchResults(flightResults.data);
     } catch (error) {
-      console.error("Error performing search:", error);
-      alert("Search failed. Please try again.");
+      console.error("Search error:", error);
+      alert(`Search failed: ${error.message}`);
       setFlightSearchResults([]);
       setBusSearchResults([]);
     } finally {
