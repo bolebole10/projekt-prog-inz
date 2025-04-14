@@ -148,13 +148,13 @@ const SearchComponent = () => {
         date: fromDate,
       };
       
-      // const busResults = await searchBuses(busParams);
+      const busResults = await searchBuses(busParams);
       
-      // if (busResults && busResults.journeys) {
-      //   setBusSearchResults(busResults.journeys);
-      // } else {
-      //   setBusSearchResults([]);
-      // }
+      if (busResults && busResults.journeys) {
+        setBusSearchResults(busResults.journeys);
+      } else {
+        setBusSearchResults([]);
+      }
 
       // Search for flights
       const flightParams = {

@@ -50,21 +50,25 @@ export const formatDateForBus = (dateString) => {
  */
 export const searchFlights = async (params) => {
   try {
-    // Build query parameters
+    console.log("Flight search params:", params);
     const queryParams = new URLSearchParams({
       origin: params.origin,
       destination: params.destination,
       date: params.date,
     });
 
-    // Add return date if provided
+    let response;
+
     if (params.returnDate) {
       queryParams.append("returnDate", params.returnDate);
+      response = await fetch(
+        `http://localhost:${BACKEND_PORT}/flights-return?${queryParams.toString()}`
+      );
+    } else {
+      response = await fetch(
+        `http://localhost:${BACKEND_PORT}/flights?${queryParams.toString()}`
+      );
     }
-
-    const response = await fetch(
-      `http://localhost:${BACKEND_PORT}/flights?${queryParams.toString()}`
-    );
 
     if (!response.ok) {
       throw new Error("Flight search failed");

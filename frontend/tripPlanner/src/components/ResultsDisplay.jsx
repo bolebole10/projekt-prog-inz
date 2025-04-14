@@ -94,7 +94,6 @@ const ResultsDisplay = ({
                     flight={flight}
                     originAirport={selectedLocation}
                     destinationAirport={selectedDestination}
-                    isReturn={false}
                   />
                 ))}
                 
@@ -110,57 +109,39 @@ const ResultsDisplay = ({
                 </div>
               )}
 
-              {/* Handle object with outbound/return flights format */}
-              {flightSearchResults?.outboundFlights && sortFlightResults(flightSearchResults.outboundFlights, sortFilter).slice(0, visibleOutboundFlights).map(
-                (flight, index) => (
-                  <FlightCard
-                    key={`out-${index}`}
-                    flight={flight}
-                    originAirport={selectedLocation}
-                    destinationAirport={selectedDestination}
-                    isReturn={false}
-                  />
-                )
-              )}
+              {/* Handle object with outbound/return flights format - combine them into a single card */}
+              {flightSearchResults?.outboundFlights && flightSearchResults?.returnFlights && 
+                sortFlightResults(flightSearchResults.outboundFlights, sortFilter)
+                  .slice(0, visibleOutboundFlights)
+                  .map((outboundFlight, index) => {
+                    // Create a combined flight object with both outbound and return itineraries
+                    const combinedFlight = {
+                      ...outboundFlight,
+                      itineraries: [
+                        outboundFlight.itineraries[0],
+                        flightSearchResults.returnFlights[Math.min(index, flightSearchResults.returnFlights.length - 1)].itineraries[0]
+                      ]
+                    };
+                    
+                    return (
+                      <FlightCard
+                        key={`combined-${index}`}
+                        flight={combinedFlight}
+                        originAirport={selectedLocation}
+                        destinationAirport={selectedDestination}
+                      />
+                    );
+                  })
+              }
               
-              {/* Load more button for outbound flights */}
+              {/* Load more button for combined flights */}
               {flightSearchResults?.outboundFlights?.length > visibleOutboundFlights && (
                 <div className="text-center mt-6">
                   <button 
                     onClick={() => setVisibleOutboundFlights(prev => prev + 10)}
                     className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
                   >
-                    Load More Outbound Flights
-                  </button>
-                </div>
-              )}
-
-              {/* Show return flights header if there are any return flights */}
-              {flightSearchResults?.returnFlights?.length > 0 && (
-                <h3 className="text-lg font-bold text-teal-600 mt-8 mb-4">
-                  Return Flights
-                </h3>
-              )}
-
-              {/* Return flights */}
-              {flightSearchResults?.returnFlights && sortFlightResults(flightSearchResults.returnFlights, sortFilter).slice(0, visibleReturnFlights).map((flight, index) => (
-                <FlightCard
-                  key={`ret-${index}`}
-                  flight={flight}
-                  originAirport={selectedDestination} // Note the reversed airports for return flights
-                  destinationAirport={selectedLocation}
-                  isReturn={true}
-                />
-              ))}
-              
-              {/* Load more button for return flights */}
-              {flightSearchResults?.returnFlights?.length > visibleReturnFlights && (
-                <div className="text-center mt-6">
-                  <button 
-                    onClick={() => setVisibleReturnFlights(prev => prev + 10)}
-                    className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-                  >
-                    Load More Return Flights
+                    Load More Flights
                   </button>
                 </div>
               )}
