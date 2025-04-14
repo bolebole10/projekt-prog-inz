@@ -19,7 +19,7 @@ builder.Services.AddScoped<AmadeusService>();
 builder.Services.AddHttpClient("FlixBus", client =>
 {
     client.BaseAddress = new Uri("https://flixbus2.p.rapidapi.com/");
-    client.DefaultRequestHeaders.Add("X-RapidAPI-Key", "948e2cc142mshc18fb87599da22ap154fa3jsnd78863d7c9c4");
+    client.DefaultRequestHeaders.Add("X-RapidAPI-Key", "5eeca30f0cmsh8a9385eb3fffb1ap135724jsn35d3e07b3f70");
     client.DefaultRequestHeaders.Add("X-RapidAPI-Host", "flixbus2.p.rapidapi.com");
 });
 
