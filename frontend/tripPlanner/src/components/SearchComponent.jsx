@@ -4,6 +4,7 @@ import FlightCard from "./FlightCard";
 import BusCard from "./BusCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlane, faBus, faFilter } from "@fortawesome/free-solid-svg-icons";
+import { sortFlightResults, sortBusResults } from "../services/sortingService";
 
 const SearchComponent = () => {
   // Input field displayed values
@@ -37,6 +38,9 @@ const SearchComponent = () => {
   const [visibleOutboundFlights, setVisibleOutboundFlights] = useState(10);
   const [visibleReturnFlights, setVisibleReturnFlights] = useState(10);
   const [visibleBuses, setVisibleBuses] = useState(10);
+  
+  // Filter state
+  const [sortFilter, setSortFilter] = useState("");
 
   // Function to fetch airport suggestions for both fields
   const fetchAirports = async (query) => {
@@ -134,6 +138,8 @@ const SearchComponent = () => {
     setVisibleReturnFlights(10);
     setVisibleBuses(10);
   };
+  
+
 
   // Format date for bus parameters (from YYYY-MM-DD to DD.M.YYYY)
   const formatDateForBus = (dateString) => {
@@ -394,14 +400,17 @@ const SearchComponent = () => {
           <div className="mt-8 flex justify-between items-center">
               {/* Filter button */}
               <div className="relative">
-                <select
-            className="bg-gray-200 hover:bg-gray-300 text-teal-700 px-5 py-2 rounded-lg font-medium transition cursor-pointer appearance-none pr-8"
+                <select 
+                  className="bg-gray-200 hover:bg-gray-300 text-teal-700 px-5 py-2 rounded-lg font-medium transition cursor-pointer appearance-none pr-8"
+                  value={sortFilter}
+                  onChange={(e) => setSortFilter(e.target.value)}
                 >
-             <option value="" selected>
-                Filter by
-             </option>
-            <option value="price">Price</option>
-            <option value="time">Time</option>
+                  <option value="">
+                      Filter by
+                  </option>
+                  <option value="price">Price</option>
+                  <option value="earliest">Earliest</option>
+                  <option value="duration">Duration</option>
                 </select>
                 <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
                   {/*Icon for dropdown arrow*/}
@@ -492,7 +501,7 @@ const SearchComponent = () => {
                 <>
                   {/* Handle array response format */}
                   {Array.isArray(flightSearchResults) &&
-                    flightSearchResults.slice(0, visibleFlights).map((flight, index) => (
+                    sortFlightResults(flightSearchResults, sortFilter).slice(0, visibleFlights).map((flight, index) => (
                       <FlightCard
                         key={index}
                         flight={flight}
@@ -515,7 +524,7 @@ const SearchComponent = () => {
                   )}
 
                   {/* Handle object with outbound/return flights format */}
-                  {flightSearchResults?.outboundFlights?.slice(0, visibleOutboundFlights).map(
+                  {flightSearchResults?.outboundFlights && sortFlightResults(flightSearchResults.outboundFlights, sortFilter).slice(0, visibleOutboundFlights).map(
                     (flight, index) => (
                       <FlightCard
                         key={`out-${index}`}
@@ -547,7 +556,7 @@ const SearchComponent = () => {
                   )}
 
                   {/* Return flights */}
-                  {flightSearchResults?.returnFlights?.slice(0, visibleReturnFlights).map((flight, index) => (
+                  {flightSearchResults?.returnFlights && sortFlightResults(flightSearchResults.returnFlights, sortFilter).slice(0, visibleReturnFlights).map((flight, index) => (
                     <FlightCard
                       key={`ret-${index}`}
                       flight={flight}
@@ -576,7 +585,7 @@ const SearchComponent = () => {
                 <div className="space-y-6">
                   {Array.isArray(busSearchResults) && busSearchResults.length > 0 ? (
                     <>
-                      {busSearchResults.slice(0, visibleBuses).map((journey, index) => (
+                      {sortBusResults(busSearchResults, sortFilter).slice(0, visibleBuses).map((journey, index) => (
                         <BusCard
                           key={index}
                           journey={journey}
