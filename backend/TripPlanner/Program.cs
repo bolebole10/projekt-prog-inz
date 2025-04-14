@@ -66,12 +66,12 @@ app.MapGet("/flights", async (string origin, string destination, string date, Am
 });
 
 //LETOVI SA POVRATKOM
-app.MapGet("/flights-return", async (string origin, string destination, string departureDate, string returnDate, AmadeusService amadeusService, AirportService airportService) =>
+app.MapGet("/flights-return", async (string origin, string destination, string date, string returnDate, AmadeusService amadeusService, AirportService airportService) =>
 {
     origin = airportService.GetIataCode(origin);
     destination = airportService.GetIataCode(destination);
 
-    var flights = await amadeusService.SearchFlightsWithReturnAsync(origin, destination, departureDate, returnDate);
+    var flights = await amadeusService.SearchFlightsWithReturnAsync(origin, destination, date, returnDate);
     return Results.Ok(flights);
 });
 
