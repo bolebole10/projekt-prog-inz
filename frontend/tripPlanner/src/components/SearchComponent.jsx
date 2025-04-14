@@ -1,37 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { BACKEND_PORT } from "../config";
-import FlightCard from "./FlightCard"; 
-import BusCard from "./BusCard";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlane, faBus, faFilter } from "@fortawesome/free-solid-svg-icons";
-import { sortFlightResults, sortBusResults } from "../services/sortingService";
 import { searchAirports, searchFlights, searchBuses } from "../services/apiService";
+import SearchForm from "./SearchForm";
+import ResultsDisplay from "./ResultsDisplay";
 
 const SearchComponent = () => {
-  // Input field displayed values
+  // State management
+  // Form state
   const [destination, setDestination] = useState("");
   const [location, setLocation] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [tripType, setTripType] = useState("roundTrip"); // "roundTrip" or "oneWay"
-
-  // Store the full airport objects for IATA codes
+  const [tripType, setTripType] = useState("roundTrip");
+  const [sortFilter, setSortFilter] = useState("");
+  
+  // Airport selection state
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
-
   const [showDestinationList, setShowDestinationList] = useState(false);
   const [showLocationList, setShowLocationList] = useState(false);
-
   const [filteredAirports, setFilteredAirports] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(false);
+  
+  // Search and results state
   const [isSearching, setIsSearching] = useState(false);
-
-  // Add new state for search results
   const [flightSearchResults, setFlightSearchResults] = useState([]);
   const [busSearchResults, setBusSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
-
-  // State for active tab (flights or buses)
   const [activeTab, setActiveTab] = useState("flights");
   
   // Pagination state
@@ -39,9 +33,6 @@ const SearchComponent = () => {
   const [visibleOutboundFlights, setVisibleOutboundFlights] = useState(10);
   const [visibleReturnFlights, setVisibleReturnFlights] = useState(10);
   const [visibleBuses, setVisibleBuses] = useState(10);
-  
-  // Filter state
-  const [sortFilter, setSortFilter] = useState("");
 
   // Function to fetch airport suggestions for both fields
   const fetchAirports = async (query) => {
@@ -157,13 +148,13 @@ const SearchComponent = () => {
         date: fromDate,
       };
       
-      const busResults = await searchBuses(busParams);
+      // const busResults = await searchBuses(busParams);
       
-      if (busResults && busResults.journeys) {
-        setBusSearchResults(busResults.journeys);
-      } else {
-        setBusSearchResults([]);
-      }
+      // if (busResults && busResults.journeys) {
+      //   setBusSearchResults(busResults.journeys);
+      // } else {
+      //   setBusSearchResults([]);
+      // }
 
       // Search for flights
       const flightParams = {
@@ -178,7 +169,6 @@ const SearchComponent = () => {
       }
       
       const flightResults = await searchFlights(flightParams);
-      console.log(flightResults.data);
       setFlightSearchResults(flightResults.data);
     } catch (error) {
       console.error("Search error:", error);
@@ -192,391 +182,55 @@ const SearchComponent = () => {
 
   return (
     <div className="flex flex-col flex-1 py-8 px-4">
-      <div
-        className="max-w-4xl mx-auto rounded-xl shadow-xl bg-white/90 backdrop-blur-md p-8 search-component"
-        style={{ width: "80%" }}
-      >
-        <h2 className="text-2xl font-bold text-teal-700 mb-6 text-center">
-          Plan Your Journey 🌍
-        </h2>
-
-        {/* Trip Type Toggle */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
-            <button
-              type="button"
-              onClick={() => toggleTripType("roundTrip")}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-                tripType === "roundTrip"
-                  ? "bg-teal-600 text-white"
-                  : "bg-teal-100 text-teal-900 hover:bg-teal-200"
-              }`}
-            >
-              Round Trip
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleTripType("oneWay")}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-                tripType === "oneWay"
-                  ? "bg-teal-600 text-white"
-                  : "bg-teal-100 text-teal-900 hover:bg-teal-200"
-              }`}
-            >
-              One Way
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Location */}
-          <div className="relative w-full">
-            <label className="block text-sm font-bold mb-2 text-teal-600">
-              Location
-            </label>
-            <div className="relative">
-              <i className="absolute left-3 top-2.5 text-teal-500 fa fa-map-marker-alt"></i>
-              <input
-                type="text"
-                placeholder="Enter location..."
-                className="bg-teal-50 h-10 w-full pl-10 pr-3 rounded-lg border border-teal-300 focus:ring-2 focus:ring-teal-400 outline-none transition"
-                value={location}
-                onChange={(e) => {
-                  setLocation(e.target.value);
-                  setSelectedLocation(null); // Reset selected airport when input changes
-                  setShowLocationList(true);
-                  debouncedFetchAirports(e.target.value);
-                }}
-              />
-              {showLocationList && (
-                <ul className="absolute z-50 top-full left-0 mt-1 w-full bg-white border rounded-md shadow-md">
-                  {isLoadingAirports ? (
-                    <li className="px-3 py-2 text-gray-500">Loading...</li>
-                  ) : filteredAirports.length > 0 ? (
-                    filteredAirports.map((airport, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleSelectLocation(airport)}
-                        className="px-3 py-2 border-b last:border-b-0 hover:bg-teal-100 cursor-pointer"
-                      >
-                        {renderAirportItem(airport)}
-                      </li>
-                    ))
-                  ) : location.length >= 2 ? (
-                    <li className="px-3 py-2 text-gray-500">
-                      No results found
-                    </li>
-                  ) : null}
-                </ul>
-              )}
-            </div>
-            {selectedLocation && (
-              <div className="mt-1 text-xs text-teal-600">
-                Selected: {selectedLocation.city} ({selectedLocation.iataCode})
-              </div>
-            )}
-          </div>
-
-          {/* Destination */}
-          <div className="relative w-full">
-            <label className="block text-sm font-bold mb-2 text-teal-600">
-              Destination
-            </label>
-            <div className="relative">
-              <i className="absolute left-3 top-2.5 text-teal-500 fa fa-plane-departure"></i>
-              <input
-                type="text"
-                placeholder="Enter destination..."
-                className="bg-teal-50 h-10 w-full pl-10 pr-3 rounded-lg border border-teal-300 focus:ring-2 focus:ring-teal-400 outline-none transition"
-                value={destination}
-                onChange={(e) => {
-                  setDestination(e.target.value);
-                  setSelectedDestination(null); // Reset selected airport when input changes
-                  setShowDestinationList(true);
-                  debouncedFetchAirports(e.target.value);
-                }}
-              />
-              {showDestinationList && (
-                <ul className="absolute z-50 top-full left-0 mt-1 w-full bg-white border rounded-md shadow-md">
-                  {isLoadingAirports ? (
-                    <li className="px-3 py-2 text-gray-500">Loading...</li>
-                  ) : filteredAirports.length > 0 ? (
-                    filteredAirports.map((airport, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleSelectDestination(airport)}
-                        className="px-3 py-2 border-b last:border-b-0 hover:bg-teal-100 cursor-pointer"
-                      >
-                        {renderAirportItem(airport)}
-                      </li>
-                    ))
-                  ) : destination.length >= 2 ? (
-                    <li className="px-3 py-2 text-gray-500">
-                      No results found
-                    </li>
-                  ) : null}
-                </ul>
-              )}
-            </div>
-            {selectedDestination && (
-              <div className="mt-1 text-xs text-teal-600">
-                Selected: {selectedDestination.city} (
-                {selectedDestination.iataCode})
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Date Range */}
-          <div className="flex flex-col md:flex-row gap-6 mt-6">
-            <div className="relative w-full">
-              <label className="block text-sm font-bold mb-2 text-teal-600">
-                Departure Date
-              </label>
-              <div className="relative">
-                <input
-            type="date"
-            className="bg-teal-50 h-10 w-full px-3 rounded-lg border border-teal-300 focus:ring-2 focus:ring-teal-400 outline-none transition"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {tripType === "roundTrip" && (
-              <div className="relative w-full">
-                <label className="block text-sm font-bold mb-2 text-teal-600">
-            Return Date
-                </label>
-                <div className="relative">
-            <input
-              type="date"
-              className="bg-teal-50 h-10 w-full px-3 rounded-lg border border-teal-300 focus:ring-2 focus:ring-teal-400 outline-none transition"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8 flex justify-between items-center">
-              {/* Filter button */}
-              <div className="relative">
-                <select 
-                  className="bg-gray-200 hover:bg-gray-300 text-teal-700 px-5 py-2 rounded-lg font-medium transition cursor-pointer appearance-none pr-8"
-                  value={sortFilter}
-                  onChange={(e) => setSortFilter(e.target.value)}
-                >
-                  <option value="">
-                      Filter by
-                  </option>
-                  <option value="price">Price</option>
-                  <option value="earliest">Earliest</option>
-                  <option value="duration">Duration</option>
-                </select>
-                <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                  {/*Icon for dropdown arrow*/}
-                    <svg
-                      className="w-4 h-4 text-teal-700"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                </div>
-              </div>
-
-              {/* Search button */}
-            <button
-              onClick={handleSearch}
-              disabled={isSearching}
-              className={`${
-                isSearching ? "bg-teal-400" : "bg-teal-600 hover:bg-teal-700"
-              } text-white px-6 py-2 rounded-lg font-semibold transition`}
-            >
-              {isSearching ? "Searching..." : "Search"}
-            </button>
-          </div>
-      </div>
+      <SearchForm
+        location={location}
+        destination={destination}
+        fromDate={fromDate}
+        toDate={toDate}
+        tripType={tripType}
+        selectedLocation={selectedLocation}
+        selectedDestination={selectedDestination}
+        showLocationList={showLocationList}
+        showDestinationList={showDestinationList}
+        filteredAirports={filteredAirports}
+        isLoadingAirports={isLoadingAirports}
+        isSearching={isSearching}
+        sortFilter={sortFilter}
+        setLocation={setLocation}
+        setDestination={setDestination}
+        setFromDate={setFromDate}
+        setToDate={setToDate}
+        setShowLocationList={setShowLocationList}
+        setShowDestinationList={setShowDestinationList}
+        debouncedFetchAirports={debouncedFetchAirports}
+        handleSelectLocation={handleSelectLocation}
+        handleSelectDestination={handleSelectDestination}
+        toggleTripType={toggleTripType}
+        setSortFilter={setSortFilter}
+        handleSearch={handleSearch}
+        renderAirportItem={renderAirportItem}
+      />
 
       {/* Display search results */}
       {hasSearched && (
-        <div className="max-w-5xl mx-auto mt-8" style={{ width: "85%" }}>
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
-              <button
-                onClick={() => handleTabChange("flights")}
-                className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-                  activeTab === "flights"
-                    ? "bg-white text-teal-600 shadow-sm transform scale-105"
-                    : "text-gray-600 hover:text-teal-500"
-                }`}
-              >
-                <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
-              </button>
-              <button
-                onClick={() => handleTabChange("buses")}
-                className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-                  activeTab === "buses"
-                    ? "bg-white text-teal-600 shadow-sm transform scale-105"
-                    : "text-gray-600 hover:text-teal-500"
-                }`}
-              >
-                <FontAwesomeIcon icon={faBus} className="mr-2" /> Buses
-              </button>
-            </div>
-          </div>
-
-          <h2 className="text-xl font-bold text-teal-700 mb-4">
-            {isSearching
-              ? `Searching for ${activeTab}...`
-              : activeTab === "flights"
-              ? (Array.isArray(flightSearchResults) &&
-                  flightSearchResults.length > 0) ||
-                flightSearchResults?.outboundFlights?.length > 0
-                ? "Available Flights"
-                : "No flights found for your search criteria"
-              : (Array.isArray(busSearchResults) &&
-                  busSearchResults.length > 0)
-                ? "Available Buses"
-                : "No buses found for your search criteria"}
-          </h2>
-
-          {/* Display search results based on active tab */}
-          {isSearching ? (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-teal-600"></div>
-              <p className="mt-2 text-teal-600">
-                Searching for the best {activeTab}...
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Flight tab content */}
-              {activeTab === "flights" && (
-                <>
-                  {/* Handle array response format */}
-                  {Array.isArray(flightSearchResults) &&
-                    sortFlightResults(flightSearchResults, sortFilter).slice(0, visibleFlights).map((flight, index) => (
-                      <FlightCard
-                        key={index}
-                        flight={flight}
-                        originAirport={selectedLocation}
-                        destinationAirport={selectedDestination}
-                        isReturn={false}
-                      />
-                    ))}
-                    
-                  {/* Load more button for array format */}
-                  {Array.isArray(flightSearchResults) && flightSearchResults.length > visibleFlights && (
-                    <div className="text-center mt-6">
-                      <button 
-                        onClick={() => setVisibleFlights(prev => prev + 10)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-                      >
-                        Load More Results
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Handle object with outbound/return flights format */}
-                  {flightSearchResults?.outboundFlights && sortFlightResults(flightSearchResults.outboundFlights, sortFilter).slice(0, visibleOutboundFlights).map(
-                    (flight, index) => (
-                      <FlightCard
-                        key={`out-${index}`}
-                        flight={flight}
-                        originAirport={selectedLocation}
-                        destinationAirport={selectedDestination}
-                        isReturn={false}
-                      />
-                    )
-                  )}
-                  
-                  {/* Load more button for outbound flights */}
-                  {flightSearchResults?.outboundFlights?.length > visibleOutboundFlights && (
-                    <div className="text-center mt-6">
-                      <button 
-                        onClick={() => setVisibleOutboundFlights(prev => prev + 10)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-                      >
-                        Load More Outbound Flights
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Show return flights header if there are any return flights */}
-                  {flightSearchResults?.returnFlights?.length > 0 && (
-                    <h3 className="text-lg font-bold text-teal-600 mt-8 mb-4">
-                      Return Flights
-                    </h3>
-                  )}
-
-                  {/* Return flights */}
-                  {flightSearchResults?.returnFlights && sortFlightResults(flightSearchResults.returnFlights, sortFilter).slice(0, visibleReturnFlights).map((flight, index) => (
-                    <FlightCard
-                      key={`ret-${index}`}
-                      flight={flight}
-                      originAirport={selectedDestination} // Note the reversed airports for return flights
-                      destinationAirport={selectedLocation}
-                      isReturn={true}
-                    />
-                  ))}
-                  
-                  {/* Load more button for return flights */}
-                  {flightSearchResults?.returnFlights?.length > visibleReturnFlights && (
-                    <div className="text-center mt-6">
-                      <button 
-                        onClick={() => setVisibleReturnFlights(prev => prev + 10)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-                      >
-                        Load More Return Flights
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Bus tab content */}
-              {activeTab === "buses" && (
-                <div className="space-y-6">
-                  {Array.isArray(busSearchResults) && busSearchResults.length > 0 ? (
-                    <>
-                      {sortBusResults(busSearchResults, sortFilter).slice(0, visibleBuses).map((journey, index) => (
-                        <BusCard
-                          key={index}
-                          journey={journey}
-                        />
-                      ))}
-                      
-                      {/* Load more button for buses */}
-                      {busSearchResults.length > visibleBuses && (
-                        <div className="text-center mt-6">
-                          <button 
-                            onClick={() => setVisibleBuses(prev => prev + 10)}
-                            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-                          >
-                            Load More Bus Routes
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
-                      <p className="text-gray-600">No bus routes found for this journey.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <ResultsDisplay
+          isSearching={isSearching}
+          activeTab={activeTab}
+          handleTabChange={handleTabChange}
+          flightSearchResults={flightSearchResults}
+          busSearchResults={busSearchResults}
+          selectedLocation={selectedLocation}
+          selectedDestination={selectedDestination}
+          sortFilter={sortFilter}
+          visibleFlights={visibleFlights}
+          visibleOutboundFlights={visibleOutboundFlights}
+          visibleReturnFlights={visibleReturnFlights}
+          visibleBuses={visibleBuses}
+          setVisibleFlights={setVisibleFlights}
+          setVisibleOutboundFlights={setVisibleOutboundFlights}
+          setVisibleReturnFlights={setVisibleReturnFlights}
+          setVisibleBuses={setVisibleBuses}
+        />
       )}
     </div>
   );
