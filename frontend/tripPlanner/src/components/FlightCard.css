@@ -1,0 +1,201 @@
+.flight-card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 20px 0;
+    margin-bottom: 1rem;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.flight-card {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 1.25rem;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    font-family: 'Roboto', sans-serif;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Add hover effect to the flight card container */
+.flight-card-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.outbound-flight {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: white;
+    position: relative;
+}
+
+.return-flight {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: #f8fafc;
+    border-bottom: none;
+    position: relative;
+}
+
+.flight-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.flight-card-s {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    margin: 0 10px;
+}
+
+.flight-card-s-icon {
+    font-size: 1.5rem;
+    color: #0d9488;
+    flex-shrink: 0;
+}
+
+.flight-card-s-text {
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.flight-card-s-text h2 {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #334155;
+    font-size: 1.2rem;
+}
+
+.flight-card-s-text p {
+    margin: 0.125rem 0;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.flight-card-middle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.flight-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.flight-price-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(13, 148, 136, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    width: 100%;
+    max-width: 8rem;
+}
+
+.flight-price {
+    font-weight: 700;
+    color: #0d9488;
+    font-size: 1.1rem;
+    margin: 0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.flight-card-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.flight-direction {
+    font-weight: 600;
+    color: #334155;
+    font-size: 1rem;
+    background-color: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+}
+
+.airline-name {
+    color: #64748b;
+    margin-bottom: 0.375rem;
+    font-size: 1.1rem;
+}
+
+.flight-number {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #334155;
+    margin-bottom: 0.25rem;
+}
+
+.flight-duration {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.connection-info {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* Add responsive styling */
+@media (max-width: 768px) {
+    .flight-card-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .flight-card-s {
+        width: 100%;
+    }
+    
+    .flight-card-middle {
+        width: 100%;
+        order: -1;
+        margin-bottom: 1rem;
+    }
+    
+    .flight-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .flight-price-container {
+        max-width: none;
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+}
