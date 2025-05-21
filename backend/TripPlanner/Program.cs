@@ -1,4 +1,5 @@
 ﻿using WebApplication1.Services;
+using Neo4j.Driver; // <--- Dodano za Neo4j
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,15 @@ builder.Services.AddHttpClient("FlixBus", client =>
 });
 
 builder.Services.AddScoped<FlixBusService>();
+
+// Neo4j konfiguracija
+builder.Services.AddSingleton(GraphDatabase.Driver(
+    "neo4j+s://65b4ca19.databases.neo4j.io",
+    AuthTokens.Basic("neo4j", "Gh9DIh0CEJdusYaQk7VzHg-9dDWIVO5OgrzIAgnPtuQ"))); 
+    //"bolt://localhost:7687" ,                      
+    //AuthTokens.Basic("neo4j", "password")));   //za lokalnu bazu
+
+builder.Services.AddSingleton<AddAllService>();
 
 //cors -- za povezivanje s frontendom - ako je frontend na drugom portu
 builder.Services.AddCors(options =>
@@ -123,6 +133,40 @@ app.MapGet("/flixbus/trips-by-city", async (
     // Traži rute
     var trips = await flixBusService.SearchTripsAsync(fromId, toId, date);
     return Results.Ok(trips);
+});
+
+// NEO4J TEST ENDPOINT (DODANO)
+app.MapGet("/neo4j-test", async (IDriver driver) =>
+{
+    var session = driver.AsyncSession();
+    var result = await session.RunAsync("RETURN 'Hello from Neo4j!' AS message");
+    var message = await result.SingleAsync(r => r["message"].As<string>());
+    await session.CloseAsync();
+
+    return Results.Ok(message);
+});
+
+app.MapPost("/gtfs/generate-simulated-network", async (AddAllService service) =>
+{
+    await service.GenerateSimulatedNetworkAsync();
+    return Results.Ok("Simulirana europska mreža generirana.");
+});
+
+app.MapPost("/neo4j/add-all", async (
+    string fromCity, double fromLat, double fromLon,
+    string toCity, double toLat, double toLon,
+    string mode, double price, int duration,
+    DateTime departureTime, DateTime arrivalTime,
+    string tripId, string operatorName,
+    AddAllService service) =>
+{
+    await service.CreateConnectionAsync(
+        fromCity, fromLat, fromLon,
+        toCity, toLat, toLon,
+        mode, price, duration,
+        departureTime, arrivalTime,
+        tripId, operatorName);
+    return Results.Ok("Connection added.");
 });
 
 
