@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<AirportService>();
+builder.Services.AddSingleton<NearestAirportService>(sp =>
+    new NearestAirportService("airports.csv"));
+
 
 //httpClient - za povezivanje s Amadeus API
 builder.Services.AddHttpClient("Amadeus", client =>
@@ -74,6 +77,34 @@ app.MapGet("/flights-return", async (string origin, string destination, string d
     var flights = await amadeusService.SearchFlightsWithReturnAsync(origin, destination, date, returnDate);
     return Results.Ok(flights);
 });
+
+
+//Dohvat najbližeg aerodroma prema gradu
+app.MapGet("/airports/nearest", async (
+    string city,
+    NearestAirportService nearestAirportService) =>
+{
+    if (string.IsNullOrWhiteSpace(city))
+    {
+        return Results.BadRequest("City is required.");
+    }
+
+    try
+    {
+        var result = await nearestAirportService.FindNearestAsync(city);
+        if (result == null)
+        {
+            return Results.NotFound("No airport found.");
+        }
+
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Error: {ex.Message}");
+    }
+});
+
 
 
 //PRETRAZIVANJE SVIH AERODROMA PREMA IMENU GRADA
