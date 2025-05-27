@@ -115,6 +115,30 @@ app.MapGet("/airports/nearest", async (
     }
 });
 
+//Dohvati aerodrome u određenom radijusu od grada
+app.MapGet("/airports/in-radius", async (
+    string city,
+    double radius,
+    NearestAirportService nearestAirportService) =>
+{
+    if (string.IsNullOrWhiteSpace(city))
+        return Results.BadRequest("City is required.");
+    if (radius <= 0)
+        return Results.BadRequest("Radius must be a positive number.");
+
+    try
+    {
+        var airports = await nearestAirportService.FindAirportsWithinRadiusAsync(city, radius);
+        return airports.Any()
+            ? Results.Ok(airports)
+            : Results.NotFound("No airports found within the specified radius.");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Error: {ex.Message}");
+    }
+});
+
 
 
 //PRETRAZIVANJE SVIH AERODROMA PREMA IMENU GRADA
