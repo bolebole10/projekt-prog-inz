@@ -118,4 +118,29 @@ public class NearestAirportService
         [JsonPropertyName("lon")]
         public string lon { get; set; }
     }
+    
+    public async Task<List<NearestAirportResult>> FindAirportsWithinRadiusAsync(string cityName, double radiusKm)
+    {
+        var (cityLat, cityLon) = await GeocodeCityAsync(cityName);
+        var airports = LoadAirports();
+
+        var results = new List<NearestAirportResult>();
+
+        foreach (var airport in airports)
+        {
+            double distance = Haversine(cityLat, cityLon, airport.Lat, airport.Lon);
+            if (distance <= radiusKm)
+            {
+                results.Add(new NearestAirportResult
+                {
+                    AirportName = airport.Name,
+                    IATA = airport.IATA,
+                    DistanceKm = Math.Round(distance, 2)
+                });
+            }
+        }
+
+        return results.OrderBy(r => r.DistanceKm).ToList();
+    }
+
 }
