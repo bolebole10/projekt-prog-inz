@@ -32,11 +32,14 @@ builder.Services.AddScoped<FlixBusService>();
 // Neo4j konfiguracija
 builder.Services.AddSingleton(GraphDatabase.Driver(
     "neo4j+s://65b4ca19.databases.neo4j.io",
-    AuthTokens.Basic("neo4j", "Gh9DIh0CEJdusYaQk7VzHg-9dDWIVO5OgrzIAgnPtuQ"))); 
-    //"bolt://localhost:7687" ,                      
-    //AuthTokens.Basic("neo4j", "password")));   //za lokalnu bazu
+    AuthTokens.Basic("neo4j", "Gh9DIh0CEJdusYaQk7VzHg-9dDWIVO5OgrzIAgnPtuQ")));
+//"bolt://localhost:7687" ,                      
+//AuthTokens.Basic("neo4j", "password")));   //za lokalnu bazu
 
 builder.Services.AddSingleton<AddAllService>();
+
+builder.Services.AddHttpClient("OpenRouteService");
+builder.Services.AddScoped<OpenRouteServiceService>();
 
 //cors -- za povezivanje s frontendom - ako je frontend na drugom portu
 builder.Services.AddCors(options =>
