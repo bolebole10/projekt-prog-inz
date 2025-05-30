@@ -224,6 +224,36 @@ app.MapPost("/neo4j/add-all", async (
     return Results.Ok("Connection added.");
 });
 
+//IZRAČUN VREMENA I CIJENE AUTMOBILOM
+app.MapGet("/carroute", async (
+    string from,
+    string to,
+    OpenRouteServiceService orsService) =>
+{
+    var result = await orsService.GetDrivingInfoAsync(from, to);
+    if (result == null)
+        return Results.BadRequest("Could not calculate route.");
+
+    var (distanceKm, durationMin) = result.Value;
+
+    var gasPriceSuper = distanceKm / 100 * 6 * 1.41;
+    var gasPriceDiesel = distanceKm / 100 * 6 * 1.28;
+
+    int hours = (int)durationMin / 60;
+    int minutes = (int)durationMin % 60;
+
+    return Results.Ok(new
+    {
+        from,
+        to,
+        distance_km = Math.Round(distanceKm, 2),
+        duration_hours = hours,
+        duration_minutes = minutes,
+        gas_price_super = Math.Round(gasPriceSuper, 1),
+        gas_price_diesel = Math.Round(gasPriceDiesel, 1)
+    });
+});
+
 
 app.Run();
 
