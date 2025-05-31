@@ -10,6 +10,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     position: relative;
+    background-color: white; /* Add this to prevent transparency */
 }
 
 .flight-card {
@@ -17,8 +18,8 @@
     flex-direction: column;
     background-color: white;
     padding: 1.25rem;
-    width: 100%;
-    max-width: 800px;
+
+    width: 100%; 
     height: auto;
     font-family: 'Roboto', sans-serif;
     border-bottom: 1px solid #e2e8f0;
