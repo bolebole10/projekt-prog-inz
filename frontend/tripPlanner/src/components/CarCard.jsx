@@ -14,9 +14,6 @@ const CarCard = ({ carRoute }) => {
     gas_price_diesel
   } = carRoute;
 
-  // Calculate total minutes for display
-  const totalMinutes = (duration_hours * 60) + duration_minutes;
-  
   // Format duration for display
   const formatDuration = () => {
     if (duration_hours === 0) {
@@ -29,57 +26,74 @@ const CarCard = ({ carRoute }) => {
   };
 
   return (
-    <div className="car-card-container">
-      <div className="car-card">
-        <div className="car-card-header">
-          <span className="route-type">
-            <FontAwesomeIcon icon={faCar} className="mr-2" /> Car Route
-          </span>
+    <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-teal-500 to-emerald-400 text-white px-6 py-4 flex items-center">
+        <div className="rounded-full bg-white/20 p-2 mr-3">
+          <FontAwesomeIcon icon={faCar} />
         </div>
+        <div>
+          <h3 className="text-lg font-semibold">Car Route</h3>
+          <p className="text-sm opacity-80">Driving directions and estimates</p>
+        </div>
+      </div>
 
-        <div className="car-card-row">
-          <div className="car-card-locations">
-            <div className="car-card-location">
-              <h2>{from}</h2>
-              <p>Starting point</p>
-            </div>
-            
-            <div className="car-route-line">
-              <div className="route-dash"></div>
-              <div className="route-info">
-                <span>{Math.round(distance_km)} km</span>
+      <div className="p-6">
+        <div className="flex flex-col lg:flex-row">
+          <div className="flex-1 mb-6 lg:mb-0">
+            <div className="flex items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{from}</h2>
+                <p className="text-gray-500 text-sm">Starting point</p>
               </div>
-              <div className="route-dash"></div>
+              
+              <div className="mx-4 flex-1 flex items-center justify-center">
+                <div className="h-0.5 bg-teal-100 flex-1"></div>
+                <span className="mx-2 bg-teal-50 text-teal-700 text-sm font-medium px-3 py-1 rounded-full border border-teal-200">
+                  {Math.round(distance_km)} km
+                </span>
+                <div className="h-0.5 bg-teal-100 flex-1"></div>
+              </div>
+              
+              <div className="text-right">
+                <h2 className="text-xl font-bold text-gray-900">{to}</h2>
+                <p className="text-gray-500 text-sm">Destination</p>
+              </div>
             </div>
-            
-            <div className="car-card-location">
-              <h2>{to}</h2>
-              <p>Destination</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="flex items-start bg-gray-50 rounded-lg p-4 border border-gray-100">
+            <div className="rounded-full bg-teal-100 p-3 mr-3">
+              <FontAwesomeIcon icon={faClock} className="text-teal-600" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700">Duration</h3>
+              <p className="text-xl font-bold text-gray-900">{formatDuration()}</p>
             </div>
           </div>
           
-          <div className="car-card-details">
-            <div className="detail-item">
-              <FontAwesomeIcon icon={faClock} className="detail-icon" />
-              <div>
-                <h3>Duration</h3>
-                <p>{formatDuration()}</p>
-              </div>
+          <div className="flex items-start bg-gray-50 rounded-lg p-4 border border-gray-100">
+            <div className="rounded-full bg-teal-100 p-3 mr-3">
+              <FontAwesomeIcon icon={faRoad} className="text-teal-600" />
             </div>
-            
-            <div className="detail-item">
-              <FontAwesomeIcon icon={faRoad} className="detail-icon" />
-              <div>
-                <h3>Distance</h3>
-                <p>{Math.round(distance_km)} km</p>
-              </div>
+            <div>
+              <h3 className="font-medium text-gray-700">Distance</h3>
+              <p className="text-xl font-bold text-gray-900">{Math.round(distance_km)} km</p>
             </div>
-            
-            <div className="detail-item">
-              <FontAwesomeIcon icon={faGasPump} className="detail-icon" />
+          </div>
+          
+          <div className="flex items-start bg-gray-50 rounded-lg p-4 border border-gray-100">
+            <div className="rounded-full bg-teal-100 p-3 mr-3">
+              <FontAwesomeIcon icon={faGasPump} className="text-teal-600" />
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-700">Fuel Prices</h3>
               <div>
-                <h3>Fuel Prices</h3>
-                <p>Super: €{gas_price_super.toFixed(2)} | Diesel: €{gas_price_diesel.toFixed(2)}</p>
+                <span className="font-semibold">Super:</span> €{gas_price_super.toFixed(2)}
+              </div>
+              <div>
+                <span className="font-semibold">Diesel:</span> €{gas_price_diesel.toFixed(2)}
               </div>
             </div>
           </div>

@@ -3,7 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlane, faBus, faCar } from "@fortawesome/free-solid-svg-icons";
 import FlightCard from "./FlightCard";
 import BusCard from "./BusCard";
-import CarCard from "./CarCard";  // Import the new CarCard component
+import CarCard from "./CarCard";
+import NearbyAirports from "./NearbyAirports";
+
 import { sortFlightResults, sortBusResults } from "../services/sortingService";
 
 const ResultsDisplay = ({
@@ -12,7 +14,7 @@ const ResultsDisplay = ({
   handleTabChange,
   flightSearchResults,
   busSearchResults,
-  carRouteResults,  // Add this prop for car route results
+  carRouteResults,
   selectedLocation,
   selectedDestination,
   sortFilter,
@@ -20,12 +22,12 @@ const ResultsDisplay = ({
   visibleOutboundFlights,
   visibleReturnFlights,
   visibleBuses,
-  visibleCars,  // Add this prop
+  visibleCars,
   setVisibleFlights,
   setVisibleOutboundFlights,
   setVisibleReturnFlights,
   setVisibleBuses,
-  setVisibleCars  // Add this prop
+  setVisibleCars
 }) => {
   // Helper function to determine the heading text
   const getHeadingText = () => {
@@ -203,27 +205,17 @@ const ResultsDisplay = ({
           {activeTab === "cars" && (
             <div className="space-y-6">
               {carRouteResults ? (
-                <CarCard carRoute={carRouteResults} />
+                <>
+                  <CarCard carRoute={carRouteResults} />
+                  <NearbyAirports 
+                    from={carRouteResults.from}
+                    to={carRouteResults.to}
+                    nearbyAirports={carRouteResults.nearbyAirports}
+                  />
+                </>
               ) : (
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
                   <p className="text-gray-600">No car route information available for this journey.</p>
-                </div>
-              )}
-              
-              {/* Optional: Add nearest airports information */}
-              {carRouteResults && carRouteResults.nearbyAirports && carRouteResults.nearbyAirports.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-teal-700 mb-2">Nearby Airports</h3>
-                  <div className="bg-white rounded-lg shadow-md p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {carRouteResults.nearbyAirports.map((airport, index) => (
-                        <div key={index} className="p-3 border rounded-lg">
-                          <h4 className="font-medium">{airport.airportName}</h4>
-                          <p className="text-sm text-gray-600">Distance: {airport.distanceKm} km</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>

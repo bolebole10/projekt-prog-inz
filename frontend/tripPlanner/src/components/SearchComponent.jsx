@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { searchAirports, searchFlights, searchBuses } from "../services/apiService";
+import { 
+  searchAirports, 
+  searchFlights, 
+  searchBuses, 
+  getCarRoute, 
+  getAirportsInRadius, 
+  getNearestAirport 
+} from "../services/apiService";
 import SearchForm from "./SearchForm";
 import ResultsDisplay from "./ResultsDisplay";
 
@@ -25,6 +32,7 @@ const SearchComponent = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [flightSearchResults, setFlightSearchResults] = useState([]);
   const [busSearchResults, setBusSearchResults] = useState([]);
+  const [carRouteResults, setCarRouteResults] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState("flights");
   
@@ -170,6 +178,37 @@ const SearchComponent = () => {
       
       const flightResults = await searchFlights(flightParams);
       setFlightSearchResults(flightResults.data);
+
+      // Search for car route
+      try {
+        const carParams = {
+          from: selectedLocation.city,
+          to: selectedDestination.city
+        };
+        
+        // Get car route information
+        const carRouteData = await getCarRoute(carParams);
+        
+        // Find nearby airports for origin
+        const originAirports = await getAirportsInRadius(selectedLocation.city, 200);
+        
+        // Find nearby airports for destination
+        const destinationAirports = await getAirportsInRadius(selectedDestination.city, 200);
+        
+        // Combine all car data
+        const combinedCarData = {
+          ...carRouteData,
+          nearbyAirports: {
+            origin: originAirports,
+            destination: destinationAirports
+          }
+        };
+        
+        setCarRouteResults(combinedCarData);
+      } catch (error) {
+        console.error("Car route search error:", error);
+        setCarRouteResults(null);
+      }
     } catch (error) {
       console.error("Search error:", error);
       alert(`Search failed: ${error.message}`);
@@ -219,6 +258,7 @@ const SearchComponent = () => {
           handleTabChange={handleTabChange}
           flightSearchResults={flightSearchResults}
           busSearchResults={busSearchResults}
+          carRouteResults={carRouteResults}
           selectedLocation={selectedLocation}
           selectedDestination={selectedDestination}
           sortFilter={sortFilter}
