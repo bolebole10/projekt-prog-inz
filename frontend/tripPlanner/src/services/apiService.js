@@ -119,3 +119,78 @@ export const searchBuses = async (params) => {
     throw error;
   }
 };
+
+/**
+ * Get car route information between two cities
+ * @param {Object} params - Search parameters
+ * @param {string} params.from - Origin city
+ * @param {string} params.to - Destination city
+ * @returns {Promise<Object>} - Car route information
+ */
+export const getCarRoute = async (params) => {
+  try {
+    const queryParams = new URLSearchParams({
+      from: params.from,
+      to: params.to
+    });
+
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/carroute?${queryParams.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Car route search failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error finding car route:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get nearest airport to a city
+ * @param {string} city - City name
+ * @returns {Promise<Object>} - Nearest airport information
+ */
+export const getNearestAirport = async (city) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/airports/nearest?city=${encodeURIComponent(city)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Nearest airport search failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error finding nearest airport:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get airports within a radius of a city
+ * @param {string} city - City name
+ * @param {number} radius - Search radius in km
+ * @returns {Promise<Array>} - List of airports in radius
+ */
+export const getAirportsInRadius = async (city, radius) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/airports/in-radius?city=${encodeURIComponent(city)}&radius=${radius}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Airports in radius search failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error finding airports in radius:", error);
+    throw error;
+  }
+};
+
