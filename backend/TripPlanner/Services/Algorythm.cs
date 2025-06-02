@@ -12,7 +12,8 @@ public class RoutePlannerService
 
     public RoutePlannerService(string city1, string city2, DateTime date, AmadeusService amadeusService)
     {
-        string airportCsvPath = "/home/bojan/Documents/PROG_ING/projekt-prog-inz/backend/TripPlanner/airports.csv";
+        //ovdje treba svoj absolute path stavit za file
+        string airportCsvPath = "/home/bojan/Documents/PROG_ING/projekt-prog-inz/backend/TripPlanner/airports-size.csv";
         _nearestAirportService = new NearestAirportService(airportCsvPath);
         _amadeusService = amadeusService;
     }
