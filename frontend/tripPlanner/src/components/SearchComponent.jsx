@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-  searchAirports, 
-  searchFlights, 
-  searchBuses, 
-  getCarRoute, 
-  getAirportsInRadius, 
-  getNearestAirport 
+import {
+  searchAirports,
+  searchFlights,
+  searchBuses,
+  getCarRoute,
+  getAirportsInRadius,
+  getNearestAirport,
 } from "../services/apiService";
 import SearchForm from "./SearchForm";
 import ResultsDisplay from "./ResultsDisplay";
@@ -19,7 +19,7 @@ const SearchComponent = () => {
   const [toDate, setToDate] = useState("");
   const [tripType, setTripType] = useState("roundTrip");
   const [sortFilter, setSortFilter] = useState("");
-  
+
   // Airport selection state
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -27,7 +27,7 @@ const SearchComponent = () => {
   const [showLocationList, setShowLocationList] = useState(false);
   const [filteredAirports, setFilteredAirports] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(false);
-  
+
   // Search and results state
   const [isSearching, setIsSearching] = useState(false);
   const [flightSearchResults, setFlightSearchResults] = useState([]);
@@ -35,7 +35,7 @@ const SearchComponent = () => {
   const [carRouteResults, setCarRouteResults] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState("flights");
-  
+
   // Pagination state
   const [visibleFlights, setVisibleFlights] = useState(10);
   const [visibleOutboundFlights, setVisibleOutboundFlights] = useState(10);
@@ -131,7 +131,7 @@ const SearchComponent = () => {
     setVisibleReturnFlights(10);
     setVisibleBuses(10);
   };
-  
+
   // Function to handle the search submission
   const handleSearch = async () => {
     if (!selectedLocation || !selectedDestination || !fromDate) {
@@ -150,19 +150,6 @@ const SearchComponent = () => {
 
     try {
       // Search for buses
-      const busParams = {
-        from: selectedLocation.city,
-        to: selectedDestination.city,
-        date: fromDate,
-      };
-      
-      const busResults = await searchBuses(busParams);
-      
-      if (busResults && busResults.journeys) {
-        setBusSearchResults(busResults.journeys);
-      } else {
-        setBusSearchResults([]);
-      }
 
       // Search for flights
       const flightParams = {
@@ -170,12 +157,12 @@ const SearchComponent = () => {
         destination: selectedDestination.iataCode,
         date: fromDate,
       };
-      
+
       // Add return date for round trips
       if (tripType === "roundTrip") {
         flightParams.returnDate = toDate;
       }
-      
+
       const flightResults = await searchFlights(flightParams);
       setFlightSearchResults(flightResults.data);
 
@@ -183,27 +170,33 @@ const SearchComponent = () => {
       try {
         const carParams = {
           from: selectedLocation.city,
-          to: selectedDestination.city
+          to: selectedDestination.city,
         };
-        
+
         // Get car route information
         const carRouteData = await getCarRoute(carParams);
-        
+
         // Find nearby airports for origin
-        const originAirports = await getAirportsInRadius(selectedLocation.city, 200);
-        
+        const originAirports = await getAirportsInRadius(
+          selectedLocation.city,
+          200
+        );
+
         // Find nearby airports for destination
-        const destinationAirports = await getAirportsInRadius(selectedDestination.city, 200);
-        
+        const destinationAirports = await getAirportsInRadius(
+          selectedDestination.city,
+          200
+        );
+
         // Combine all car data
         const combinedCarData = {
           ...carRouteData,
           nearbyAirports: {
             origin: originAirports,
-            destination: destinationAirports
-          }
+            destination: destinationAirports,
+          },
         };
-        
+
         setCarRouteResults(combinedCarData);
       } catch (error) {
         console.error("Car route search error:", error);
