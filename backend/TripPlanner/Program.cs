@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<AirportService>();
 builder.Services.AddSingleton<NearestAirportService>(sp =>
-    new NearestAirportService("airports.csv"));
+    new NearestAirportService("airports-size.csv"));
 
 
 //httpClient - za povezivanje s Amadeus API
