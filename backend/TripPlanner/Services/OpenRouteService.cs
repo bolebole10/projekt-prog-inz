@@ -50,14 +50,25 @@ public class OpenRouteServiceService
 
         using var stream = await response.Content.ReadAsStreamAsync();
         using var doc = await JsonDocument.ParseAsync(stream);
-        var summary = doc.RootElement
-            .GetProperty("features")[0]
-            .GetProperty("properties")
-            .GetProperty("summary");
+        var root = doc.RootElement;
 
-        double distance = summary.GetProperty("distance").GetDouble() / 1000; // km
-        double duration = summary.GetProperty("duration").GetDouble() / 60;   // min
+        if (!root.TryGetProperty("features", out var featuresArray) || featuresArray.GetArrayLength() == 0)
+            return null;
+
+        var firstFeature = featuresArray[0];
+
+        if (!firstFeature.TryGetProperty("properties", out var properties) ||
+            !properties.TryGetProperty("summary", out var summary))
+            return null;
+
+        if (!summary.TryGetProperty("distance", out var distanceProp) ||
+            !summary.TryGetProperty("duration", out var durationProp))
+            return null;
+
+        double distance = distanceProp.GetDouble() / 1000; // km
+        double duration = durationProp.GetDouble() / 60;   // min
 
         return (distance, duration);
     }
+
 }

@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<AirportService>();
 builder.Services.AddSingleton<NearestAirportService>(sp =>
-    new NearestAirportService("airports.csv"));
+    new NearestAirportService("airports-size.csv"));
 
 
 //httpClient - za povezivanje s Amadeus API
@@ -255,6 +255,16 @@ app.MapGet("/carroute", async (
         gas_price_super = Math.Round(gasPriceSuper, 1),
         gas_price_diesel = Math.Round(gasPriceDiesel, 1)
     });
+});
+
+app.MapGet("/algoritam", async (AmadeusService amadeusService, OpenRouteServiceService OpenRouteService, string city1, string city2, DateTime date) =>
+{
+    // Napravi instancu RoutePlannerService - constructor možeš refaktorirati da ne prima gradove/datum ako želiš
+    var service = new RoutePlannerService(city1, city2, date, amadeusService, OpenRouteService);
+
+    var routes = await service.PlanRouteAsync(city1, city2, date);
+
+    return Results.Ok(routes);
 });
 
 
