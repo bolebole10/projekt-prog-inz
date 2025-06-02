@@ -9,13 +9,15 @@ public class RoutePlannerService
 {
     private readonly NearestAirportService _nearestAirportService;
     private readonly AmadeusService _amadeusService;
+    private readonly OpenRouteServiceService _openRouteService;
 
-    public RoutePlannerService(string city1, string city2, DateTime date, AmadeusService amadeusService)
+    public RoutePlannerService(string city1, string city2, DateTime date, AmadeusService amadeusService, OpenRouteServiceService openRouteService)
     {
         //ovdje treba svoj absolute path stavit za file
         string airportCsvPath = "/home/bojan/Documents/PROG_ING/projekt-prog-inz/backend/TripPlanner/airports-size.csv";
         _nearestAirportService = new NearestAirportService(airportCsvPath);
         _amadeusService = amadeusService;
+        _openRouteService = openRouteService;
     }
 
 
@@ -51,7 +53,7 @@ public class RoutePlannerService
             var firstItinerary = itineraries[0];
             var segments = firstItinerary.GetProperty("segments");
 
-            // ⛔️ Preskoči ako ima više od 1 presjedanja
+            // Preskoči ako ima više od 1 presjedanja
             if (segments.GetArrayLength() > 2)
                 continue;
 
@@ -61,7 +63,7 @@ public class RoutePlannerService
             string origin = departure.GetProperty("iataCode").GetString();
             string destination = arrival.GetProperty("iataCode").GetString();
 
-            // ✅ Provjera da je stvarni let od IATA_from do IATA_to
+            // Provjera da je stvarni let od IATA_from do IATA_to
             if (origin != IATA_from || destination != IATA_to)
                 continue;
 
@@ -88,15 +90,15 @@ public class RoutePlannerService
                 CarrierCode = carrierCode,
                 Duration = duration,
                 Price = priceStr,
-                PriceDecimal = priceDecimal, // dodaj ovo svojstvo u klasu SimpleFlightOffer
+                PriceDecimal = priceDecimal,
                 Connections = connections
             });
         }
 
-        // ✅ Vrati samo 5 najjeftinijih letova
+        // Vrati samo 5 najjeftinijih letova
         return results
             .OrderBy(f => f.PriceDecimal)
-            .Take(5)
+            .Take(2)
             .ToList();
     }
 
@@ -104,6 +106,7 @@ public class RoutePlannerService
     //ALGORITAM JE OVDJE
     public async Task<PlannedRouteResult> PlanRouteAsync(string city1, string city2, DateTime date)
     {
+        //PRONALAZAK AERODROMA U RADIJUSU OKO PRVOG I ZADNJEG GRADA
         var (airportsCity1, airportsCity2) = await FindAirportsForTwoCitiesAsync(city1, city2, radiusKm: 200);
 
         var validFromAirports = airportsCity1
@@ -114,6 +117,8 @@ public class RoutePlannerService
             .Where(a => !string.IsNullOrWhiteSpace(a.IATA) && a.IATA != "\\N")
             .ToList();
 
+
+        //IZMEĐU 2 SKUPA AERODROMA (2 radijusa) POZIVA API ZA LETOVE I VRAĆA MAX 5 NAJJEFTINIJIH ZA SVAKI
         var allFilteredFlights = new List<SimpleFlightOffer>();
 
         foreach (var fromA in validFromAirports)
@@ -128,13 +133,78 @@ public class RoutePlannerService
                     allFilteredFlights.AddRange(flights_list);
                 }
 
-                await Task.Delay(700); // pauza da izbjegneš 429
+                await Task.Delay(700); // pauza da izbjegnemo 429
             }
         }
 
-        // Ako nikada nije pronašao nijedan let, vrati sve aerodrome (ili samo batch?)
         var finalFrom = validFromAirports.ToList();
         var finalTo = validToAirports.ToList();
+
+        allFilteredFlights.OrderBy(f => f.PriceDecimal).Take(5).ToList();
+
+        foreach (var flight in allFilteredFlights)
+        {
+            // 1. Drive from city1 to flight.Origin (origin airport)
+            var fullName1 = finalFrom.FirstOrDefault(a => a.IATA == flight.Origin)?.AirportName;
+            var drivingToAirport = await _openRouteService.GetDrivingInfoAsync(city1, fullName1);
+
+            // 2. Drive from flight.Destination (destination airport) to city2
+            var fullName2 = finalTo.FirstOrDefault(a => a.IATA == flight.Destination)?.AirportName;
+            var drivingFromAirport = await _openRouteService.GetDrivingInfoAsync(fullName2, city2);
+
+            double distanceToAirport = drivingToAirport?.distanceKm ?? 0;
+            double distanceFromAirport = drivingFromAirport?.distanceKm ?? 0;
+            double durationToAirport = drivingToAirport?.durationMin ?? 0;
+            double durationFromAirport = drivingFromAirport?.durationMin ?? 0;
+
+            double gasPriceSuperToAirport = distanceToAirport / 100 * 6 * 1.41;
+            double gasPriceDieselToAirport = distanceToAirport / 100 * 6 * 1.28;
+
+            double gasPriceSuperFromAirport = distanceFromAirport / 100 * 6 * 1.41;
+            double gasPriceDieselFromAirport = distanceFromAirport / 100 * 6 * 1.28;
+
+            double totalDistanceKm = distanceToAirport + distanceFromAirport;
+
+            // Skip if total distance too long
+            if (totalDistanceKm > 300)
+                continue;
+
+            int totalMinutes = (int)(durationToAirport + durationFromAirport);
+            int totalHours = totalMinutes / 60;
+            int totalMinutesRemainder = totalMinutes % 60;
+
+            int hoursToAirport = (int)(durationToAirport / 60);
+            int minutesToAirport = (int)(durationToAirport % 60);
+
+            int hoursFromAirport = (int)(durationFromAirport / 60);
+            int minutesFromAirport = (int)(durationFromAirport % 60);
+
+            // Store all info in flight (extend flight model accordingly)
+            flight.DistanceToAirportKm = Math.Round(distanceToAirport, 2);
+            flight.DistanceFromAirportKm = Math.Round(distanceFromAirport, 2);
+
+            flight.DurationToAirportMinutes = (int)durationToAirport;
+            flight.DurationFromAirportMinutes = (int)durationFromAirport;
+
+            flight.GasPriceSuperToAirport = Math.Round(gasPriceSuperToAirport, 2);
+            flight.GasPriceDieselToAirport = Math.Round(gasPriceDieselToAirport, 2);
+
+            flight.GasPriceSuperFromAirport = Math.Round(gasPriceSuperFromAirport, 2);
+            flight.GasPriceDieselFromAirport = Math.Round(gasPriceDieselFromAirport, 2);
+
+            flight.TotalGasPriceSuper = Math.Round(gasPriceSuperToAirport + gasPriceSuperFromAirport, 2);
+            flight.TotalGasPriceDiesel = Math.Round(gasPriceDieselToAirport + gasPriceDieselFromAirport, 2);
+
+            flight.TotalDriveMinutes = totalMinutes;
+            flight.TotalDriveHours = totalHours;
+            flight.TotalDriveMinutesRemainder = totalMinutesRemainder;
+
+            Console.WriteLine($"Flight {flight.Origin} → {flight.Destination}:\n" +
+                $" To Airport: {hoursToAirport}h {minutesToAirport}m, Gas Super = {flight.GasPriceSuperToAirport} EUR\n" +
+                $" From Airport: {hoursFromAirport}h {minutesFromAirport}m, Gas Super = {flight.GasPriceSuperFromAirport} EUR\n" +
+                $" Total Drive: {totalHours}h {totalMinutesRemainder}m, Total Gas Super = {flight.TotalGasPriceSuper} EUR");
+        }
+
 
         return new PlannedRouteResult
         {
@@ -143,7 +213,7 @@ public class RoutePlannerService
             Date = date,
             FromAirport = finalFrom,
             ToAirport = finalTo,
-            flights = allFilteredFlights
+            flights = allFilteredFlights.OrderBy(f => f.PriceDecimal).Take(5).ToList()
         };
     }
 
