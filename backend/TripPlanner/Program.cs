@@ -257,6 +257,16 @@ app.MapGet("/carroute", async (
     });
 });
 
+app.MapGet("/algoritam", async (AmadeusService amadeusService, string city1, string city2, DateTime date) =>
+{
+    // Napravi instancu RoutePlannerService - constructor možeš refaktorirati da ne prima gradove/datum ako želiš
+    var service = new RoutePlannerService(city1, city2, date, amadeusService);
+
+    var routes = await service.PlanRouteAsync(city1, city2, date);
+
+    return Results.Ok(routes);
+});
+
 
 app.Run();
 
