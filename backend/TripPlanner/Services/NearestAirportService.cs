@@ -150,12 +150,13 @@ public class NearestAirportService
                 double distance = Haversine(cityLat, cityLon, airport.Lat, airport.Lon);
                 if (distance <= radiusKm)
                 {
-                    results.Add(new NearestAirportResult
-                    {
-                        AirportName = airport.Name,
-                        IATA = airport.IATA,
-                        DistanceKm = Math.Round(distance, 2)
-                    });
+                    if (distance <= 70 || airport.size == "large_airport")
+                        results.Add(new NearestAirportResult
+                        {
+                            AirportName = airport.Name,
+                            IATA = airport.IATA,
+                            DistanceKm = Math.Round(distance, 2)
+                        });
                 }
             }
         }

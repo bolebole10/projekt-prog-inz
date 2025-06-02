@@ -7,4 +7,9 @@ public class SimpleFlightOffer
     public string CarrierCode { get; set; }
     public string Duration { get; set; }
     public string Price { get; set; }
+    public List<string> Connections { get; set; }
+
+    public decimal PriceDecimal { get; set; }
+
+
 }
