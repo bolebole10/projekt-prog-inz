@@ -1,0 +1,25 @@
+name: .NET CI - TripPlanner
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x" # ili zamijeni s verzijom koju koristiš
+
+      - name: Restore dependencies
+        run: dotnet restore Backend/TripPlanner.sln
+
+      - name: Build solution
+        run: dotnet build Backend/TripPlanner.sln --no-restore
+
+      - name: Run tests
+        run: dotnet test Backend/TripPlanner.Tests/TripPlanner.Tests.csproj --no-build --verbosity normal
