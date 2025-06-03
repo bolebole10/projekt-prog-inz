@@ -16,10 +16,10 @@ jobs:
           dotnet-version: "8.0.x" # ili zamijeni s verzijom koju koristiš
 
       - name: Restore dependencies
-        run: dotnet restore Backend/TripPlanner.sln
+        run: dotnet restore backend/TripPlanner.sln
 
       - name: Build solution
-        run: dotnet build Backend/TripPlanner.sln --no-restore
+        run: dotnet build backend/TripPlanner.sln --no-restore
 
       - name: Run tests
-        run: dotnet test Backend/TripPlanner.Tests/TripPlanner.Tests.csproj --no-build --verbosity normal
+        run: dotnet test backend/TripPlanner.Tests/TripPlanner.Tests.csproj --no-build --verbosity normal
