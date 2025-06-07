@@ -1,6 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlane, faBus, faCar } from "@fortawesome/free-solid-svg-icons";
+import { faPlane, faBus, faCar, faRoute, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
 import FlightCard from "./FlightCard";
 import BusCard from "./BusCard";
 import CarCard from "./CarCard";
@@ -15,6 +15,8 @@ const ResultsDisplay = ({
   flightSearchResults,
   busSearchResults,
   carRouteResults,
+  algorithmResults,
+  optimalResults,
   selectedLocation,
   selectedDestination,
   sortFilter,
@@ -22,7 +24,6 @@ const ResultsDisplay = ({
   visibleOutboundFlights,
   visibleReturnFlights,
   visibleBuses,
-  visibleCars,
   setVisibleFlights,
   setVisibleOutboundFlights,
   setVisibleReturnFlights,
@@ -48,62 +49,119 @@ const ResultsDisplay = ({
       return carRouteResults 
         ? "Car Route Details"
         : "No car route information available";
+    } else if (activeTab === "algoritam") {
+      return algorithmResults
+        ? "Algorithm Results"
+        : "No algorithm results available";
+    } else if (activeTab === "optimal") {
+      return optimalResults
+        ? "Optimal Trip Results"
+        : "No optimal trip results available";
     }
   };
 
   return (
     <div className="max-w-5xl mx-auto mt-8" style={{ width: "85%" }}>
       {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
-            <button
-          onClick={() => handleTabChange("flights")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "flights"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            >
-          <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
-            </button>
-            <button
-          onClick={() => handleTabChange("buses")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "buses"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            >
-          <FontAwesomeIcon icon={faBus} className="mr-2" /> Buses
-            </button>
-            <button
-          onClick={() => handleTabChange("cars")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "cars"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            > 
-          <FontAwesomeIcon icon={faCar} className="mr-2" /> Car
-            </button>
-            
-          </div>
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
+          <button
+            onClick={() => handleTabChange("algoritam")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "algoritam"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faRoute} className="mr-2" /> Algoritam
+          </button>
+          <button
+            onClick={() => handleTabChange("optimal")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "optimal"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faExchangeAlt} className="mr-2" /> Optimal
+          </button>
+          <button
+            onClick={() => handleTabChange("flights")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "flights"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
+          </button>
+          <button
+            onClick={() => handleTabChange("buses")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "buses"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faBus} className="mr-2" /> Buses
+          </button>
+          <button
+            onClick={() => handleTabChange("cars")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "cars"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          > 
+            <FontAwesomeIcon icon={faCar} className="mr-2" /> Car
+          </button>
         </div>
+      </div>
 
-        <h2 className="text-xl font-bold text-teal-700 mb-4">
-          {getHeadingText()}
-        </h2>
+      <h2 className="text-xl font-bold text-teal-700 mb-4">
+        {getHeadingText()}
+      </h2>
 
-        {/* Display search results based on active tab */}
+      {/* Display search results based on active tab */}
       {isSearching ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-teal-600"></div>
-          <p className="mt-2 text-teal-600">
-            Searching for the best {activeTab}...
-          </p>
+          <p className="mt-4 text-gray-500">Searching for the best options...</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
+          {/* Algoritam tab content */}
+          {activeTab === "algoritam" && (
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              {algorithmResults ? (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Algorithm Search Results</h3>
+                  <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-96">
+                    {JSON.stringify(algorithmResults, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-center">No algorithm results available. Try adjusting your search criteria.</p>
+              )}
+            </div>
+          )}
+
+          {/* Optimal tab content */}
+          {activeTab === "optimal" && (
+            <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+              {optimalResults ? (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Optimal Trip Results</h3>
+                  <pre className="bg-gray-100 p-4 rounded-md overflow-auto max-h-96">
+                    {JSON.stringify(optimalResults, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-gray-600 text-center">No optimal trip results available. Try adjusting your search criteria.</p>
+              )}
+            </div>
+          )}
+
           {/* Flight tab content */}
           {activeTab === "flights" && (
             <>
@@ -164,6 +222,14 @@ const ResultsDisplay = ({
                   >
                     Load More Flights
                   </button>
+                </div>
+              )}
+
+              {/* If no flights found */}
+              {!(Array.isArray(flightSearchResults) && flightSearchResults.length > 0) && 
+               !(flightSearchResults?.outboundFlights) && (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
+                  <p className="text-gray-600">No flights found. Try adjusting your search criteria.</p>
                 </div>
               )}
             </>

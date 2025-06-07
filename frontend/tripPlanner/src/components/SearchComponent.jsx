@@ -5,7 +5,11 @@ import {
   searchBuses, 
   getCarRoute, 
   getAirportsInRadius, 
-  getNearestAirport 
+  getNearestAirport,
+  incrementCityScore,
+  IncrementTripScoreAsync,
+  getAlgorithmResult,
+  getOptimalTrip
 } from "../services/apiService";
 import SearchForm from "./SearchForm";
 import ResultsDisplay from "./ResultsDisplay";
@@ -33,8 +37,10 @@ const SearchComponent = () => {
   const [flightSearchResults, setFlightSearchResults] = useState([]);
   const [busSearchResults, setBusSearchResults] = useState([]);
   const [carRouteResults, setCarRouteResults] = useState(null);
+  const [algorithmResults, setAlgorithmResults] = useState(null);
+  const [optimalResults, setOptimalResults] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeTab, setActiveTab] = useState("flights");
+  const [activeTab, setActiveTab] = useState("algoritam");
   
   // Pagination state
   const [visibleFlights, setVisibleFlights] = useState(10);
@@ -134,6 +140,7 @@ const SearchComponent = () => {
   
   // Function to handle the search submission
   const handleSearch = async () => {
+    // Validate that we have all required fields
     if (!selectedLocation || !selectedDestination || !fromDate) {
       alert("Please fill in all required fields");
       return;
@@ -147,8 +154,35 @@ const SearchComponent = () => {
     setIsSearching(true);
     setHasSearched(true);
     resetPagination();
-
+    
     try {
+      // Call algorithm endpoint
+      try {
+        const algorithmData = await getAlgorithmResult(
+          selectedLocation.city, 
+          selectedDestination.city, 
+          fromDate
+        );
+        setAlgorithmResults(algorithmData);
+      } catch (error) {
+        console.error("Algorithm search error:", error);
+        setAlgorithmResults(null);
+      }
+
+      // Call optimal trip endpoint
+      try {
+        const optimalData = await getOptimalTrip(
+          selectedLocation.city,
+          selectedDestination.city,
+          fromDate,
+          'price' // Default optimization, could be added as a user option
+        );
+        setOptimalResults(optimalData);
+      } catch (error) {
+        console.error("Optimal trip search error:", error);
+        setOptimalResults(null);
+      }
+
       // Search for buses
       const busParams = {
         from: selectedLocation.city,
@@ -156,7 +190,8 @@ const SearchComponent = () => {
         date: fromDate,
       };
       
-      const busResults = await searchBuses(busParams);
+      // const busResults = await searchBuses(busParams);
+      const busResults = [];
       
       if (busResults && busResults.journeys) {
         setBusSearchResults(busResults.journeys);
@@ -203,12 +238,18 @@ const SearchComponent = () => {
             destination: destinationAirports
           }
         };
-        
+
         setCarRouteResults(combinedCarData);
       } catch (error) {
         console.error("Car route search error:", error);
         setCarRouteResults(null);
       }
+
+
+      await incrementCityScore(selectedDestination.city); 
+      await IncrementTripScoreAsync(selectedLocation.city, selectedDestination.city);
+      
+
     } catch (error) {
       console.error("Search error:", error);
       alert(`Search failed: ${error.message}`);
@@ -259,6 +300,8 @@ const SearchComponent = () => {
           flightSearchResults={flightSearchResults}
           busSearchResults={busSearchResults}
           carRouteResults={carRouteResults}
+          algorithmResults={algorithmResults}
+          optimalResults={optimalResults}
           selectedLocation={selectedLocation}
           selectedDestination={selectedDestination}
           sortFilter={sortFilter}

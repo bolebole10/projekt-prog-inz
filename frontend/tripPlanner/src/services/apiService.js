@@ -194,3 +194,134 @@ export const getAirportsInRadius = async (city, radius) => {
   }
 };
 
+export const incrementCityScore = async (city) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/increment-city-score?city=${encodeURIComponent(city)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("City score increment failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error incrementing city score:", error);
+    throw error;
+  }
+};
+
+export const IncrementTripScoreAsync = async (from, to) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/increment-trip-score?fromCity=${encodeURIComponent(from)}&toCity=${encodeURIComponent(to)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Trip score increment failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error incrementing trip score:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get top searched cities
+ * @param {number} limit - Maximum number of cities to return (default: 3)
+ * @returns {Promise<Array>} - List of popular cities with their scores
+ */
+// Export as a named export
+export const getTopSearchedCities = async (limit = 3) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/popular/cities?limit=${limit}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch popular cities");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching popular cities:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get top searched trips
+ * @param {number} limit - Maximum number of trips to return (default: 3)
+ * @returns {Promise<Array>} - List of popular trips with their scores
+ */
+// Export as a named export
+export const getTopSearchedTrips = async (limit = 3) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/popular/trips?limit=${limit}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch popular trips");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching popular trips:", error);
+    throw error;
+  }
+};
+
+//POZIV ZA ALGORITAM API
+export const getAlgorithmResult = async (city1, city2, date) => {
+  try {
+    const formattedDate = date instanceof Date ? date.toISOString().split('T')[0] : date;
+    const queryParams = new URLSearchParams({
+      city1: city1,
+      city2: city2,
+      date: formattedDate
+    });
+    const response = await fetch(`http://localhost:${BACKEND_PORT}/algoritam?${queryParams.toString()}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error fetching algorithm routes:', errorData);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error in getAlgorithmRoutes:", error);
+    throw error;
+  }
+};
+
+
+//POZIV ZA API OPTIMAL TRIP
+export const getOptimalTrip = async (from, to, departureAfter, optimizeFor) => {
+  try {
+    const formattedDepartureAfter = departureAfter instanceof Date ? departureAfter.toISOString() : departureAfter;
+    const queryParams = new URLSearchParams({
+      from: from,
+      to: to,
+      departureAfter: formattedDepartureAfter,
+      optimizeFor: optimizeFor
+    });
+    const response = await fetch(`http://localhost:${BACKEND_PORT}/api/optimal-trip?${queryParams.toString()}`);
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.title || JSON.stringify(errorData) || errorMessage;
+      } catch (e) {
+        errorMessage = `${errorMessage}, ${response.statusText}`;
+      }
+      console.error('Error fetching optimal trip:', errorMessage);
+      throw new Error(errorMessage);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error in getOptimalTrip:", error.message);
+    throw error;
+  }
+};

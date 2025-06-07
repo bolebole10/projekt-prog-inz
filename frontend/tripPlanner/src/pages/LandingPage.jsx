@@ -1,12 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DestinationCard from "../components/DestiationCard";
 import TripCard from "../components/TripCard";
 import SearchComponent from "../components/SearchComponent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlane, faSearch, faShieldAlt, faGlobe, faEnvelope, faLink, faShareAlt, faMapMarkerAlt, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
+import { faPlane, faSearch, faGlobe, faEnvelope, faLink, faShareAlt, faMapMarkerAlt, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
+import { getTopSearchedCities, getTopSearchedTrips } from "../services/apiService";
 
 const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("destinations");
+  const [popularCities, setPopularCities] = useState([]);
+  const [popularTrips, setPopularTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchPopularData = async () => {
+      setLoading(true);
+      try {
+        const cities = await getTopSearchedCities(3);
+        const trips = await getTopSearchedTrips(3);
+        
+        setPopularCities(cities);
+        setPopularTrips(trips);
+      } catch (error) {
+        console.error('Error fetching popular data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPopularData();
+  }, []);
   return (
     <div className="landing-page bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 min-h-screen">
       <header className="bg-gradient-to-r from-teal-500 to-teal-600 text-white py-12 relative overflow-hidden">
@@ -69,56 +92,52 @@ const LandingPage = () => {
           </div>
           
           {/* Tab Content */}
-          {activeTab === "destinations" ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+            </div>
+          ) : activeTab === "destinations" ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in">
               {/* Popular destination cards */}
-              <DestinationCard
-                city="Barcelona"
-                country="Spain"
-                image="https://images.unsplash.com/photo-1583422409516-2895a77efded?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"
-                description="Experience the unique architecture and vibrant culture of Catalonia"
-              />
-              <DestinationCard
-                city="Amsterdam"
-                country="Netherlands"
-                image="https://images.unsplash.com/photo-1534351590666-13e3e96b5017?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"
-                description="Explore the beautiful canals and rich history of this charming city"
-              />
-              <DestinationCard
-                city="Prague"
-                country="Czech Republic"
-                image="https://images.unsplash.com/photo-1541849546-216549ae216d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"
-                description="Discover the fairy-tale architecture and vibrant nightlife"
-              />
+              {popularCities.length > 0 ? (
+                popularCities.map((city, index) => (
+                  <DestinationCard
+                    key={index}
+                    city={city.name}
+                    country={city.country || "Europe"}
+                    image={`https://source.unsplash.com/featured/?${encodeURIComponent(city.name)},landmark`}
+                    description={city.description || `Explore the beautiful city of ${city.name} with a popularity score of ${city.searchScore}`}
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-10 text-gray-500">
+                  No popular destinations found
+                </div>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in">
               {/* Popular trip cards */}
-              <TripCard
-                origin="Zagreb"
-                destination="Barcelona"
-                originCountry="Croatia"
-                destinationCountry="Spain"
-                image="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"
-                price="€120"
-              />
-              <TripCard
-                origin="Madrid"
-                destination="London"
-                originCountry="Spain"
-                destinationCountry="United Kingdom"
-                image="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"
-                price="€95"
-              />
+              {popularTrips.length > 0 ? (
+                popularTrips.map((trip, index) => (
+                  <TripCard
+                    key={index}
+                    origin={trip.fromCity}
+                    destination={trip.toCity}
+                    originCountry={trip.fromCountry || "Europe"}
+                    destinationCountry={trip.toCountry || "Europe"}
+                    image={trip.imageUrl || `https://source.unsplash.com/featured/?${encodeURIComponent(trip.fromCity)},${encodeURIComponent(trip.toCity)},travel`}
+                    price={trip.price || "Best Price"}
+                  />
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-10 text-gray-500">
+                  No popular trips found
+                </div>
+              )}
             </div>
           )}
-          
-          {/* View all link */}
-          <div className="text-center mt-10">
-            <a href="#" className="inline-block text-teal-600 hover:text-teal-800 font-medium transition-colors">
-              View all {activeTab === "destinations" ? "destinations" : "trips"} →
-            </a>
-          </div>
+      
         </div>
       </section>
 
@@ -139,14 +158,14 @@ const LandingPage = () => {
                 <FontAwesomeIcon icon={faSearch} />
               </div>
               <h3 className="text-xl font-bold mb-2">Easy Search</h3>
-              <p className="text-gray-600">Simple and intuitive interface to find your perfect flight</p>
+              <p className="text-gray-600">Simple and intuitive interface to find your perfect trip</p>
             </div>
             <div className="p-6">
               <div className="text-5xl text-teal-500 mb-4">
-                <FontAwesomeIcon icon={faShieldAlt} />
+                <FontAwesomeIcon icon={faMapMarkerAlt} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Secure Booking</h3>
-              <p className="text-gray-600">Safe and secure payment processing for your peace of mind</p>
+              <h3 className="text-xl font-bold mb-2">Explore Top Destinations</h3>
+              <p className="text-gray-600">Discover the most popular and highly rated travel destinations</p>
             </div>
           </div>
         </div>

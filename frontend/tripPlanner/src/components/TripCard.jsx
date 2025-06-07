@@ -38,7 +38,7 @@ const TripCard = ({ origin, destination, originCountry, destinationCountry, imag
           className="w-full mt-2 bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-lg transition"
           onClick={() => console.log(`Searching flights from ${origin} to ${destination}`)}
         >
-          Find Flights
+          Find Trip
         </button>
       </div>
     </div>
