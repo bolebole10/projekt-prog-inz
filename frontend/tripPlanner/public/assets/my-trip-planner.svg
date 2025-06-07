@@ -1,0 +1,46 @@
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Poboljšani avion -->
+  <g>
+    <!-- Trup -->
+    <ellipse cx="175" cy="120" rx="42" ry="14" fill="white" stroke="#d0d0d0" stroke-width="2"/>
+    <!-- Krila -->
+    <rect x="143" y="116" width="64" height="8" rx="4" fill="#f3f3f3" stroke="#cccccc" stroke-width="1" transform="rotate(-10 175 120)"/>
+    <rect x="165" y="110" width="36" height="6" rx="3" fill="#f3f3f3" stroke="#cccccc" stroke-width="1" transform="rotate(10 175 120)"/>
+    <!-- Rep -->
+    <rect x="133" y="105" width="14" height="4" rx="2" fill="#f3f3f3" stroke="#cccccc" stroke-width="1" transform="rotate(-20 140 107)"/>
+    <!-- Prozorčići -->
+    <ellipse cx="163" cy="119" rx="2" ry="2" fill="#e0e0e0"/>
+    <ellipse cx="171" cy="121" rx="2" ry="2" fill="#e0e0e0"/>
+    <ellipse cx="179" cy="122" rx="2" ry="2" fill="#e0e0e0"/>
+    <ellipse cx="187" cy="121" rx="2" ry="2" fill="#e0e0e0"/>
+    <!-- Nos aviona -->
+    <ellipse cx="217" cy="120" rx="7" ry="8" fill="#fafafa" stroke="#cccccc" stroke-width="1"/>
+    <!-- Motor ispod krila -->
+    <ellipse cx="200" cy="133" rx="4" ry="2" fill="#ececec" stroke="#bbbbbb" stroke-width="1"/>
+  </g>
+  <!-- Zakrivljena linija (putanja aviona) -->
+  <path d="M317 140 Q430 225, 340 370" stroke="#E0E0E0" stroke-width="6" fill="none"/>
+  <!-- Veći kofer -->
+  <rect x="140" y="180" width="90" height="130" rx="16" fill="white" stroke="#E0E0E0" stroke-width="3"/>
+  <rect x="160" y="180" width="10" height="130" rx="5" fill="#F3F3F3" opacity="0.8"/>
+  <rect x="180" y="180" width="10" height="130" rx="5" fill="#F3F3F3" opacity="0.8"/>
+  <rect x="200" y="180" width="10" height="130" rx="5" fill="#F3F3F3" opacity="0.8"/>
+  <rect x="220" y="180" width="10" height="130" rx="5" fill="#F3F3F3" opacity="0.8"/>
+  <rect x="147" y="160" width="75" height="18" rx="7" fill="#F3F3F3"/>
+  <rect x="172" y="145" width="25" height="25" rx="6" fill="#F3F3F3"/>
+  <!-- Male nogice kofera -->
+  <rect x="155" y="310" width="10" height="8" rx="3" fill="#E0E0E0"/>
+  <rect x="205" y="310" width="10" height="8" rx="3" fill="#E0E0E0"/>
+  <!-- Manji kofer -->
+  <rect x="210" y="240" width="90" height="70" rx="10" fill="white" stroke="#E0E0E0" stroke-width="3"/>
+  <rect x="240" y="225" width="30" height="25" rx="6" fill="#F3F3F3"/>
+  <!-- Ručka manjeg kofera -->
+  <rect x="265" y="235" width="10" height="15" rx="3" fill="#EAEAEA" opacity="0.9"/>
+  <!-- Male nogice manjeg kofera -->
+  <rect x="220" y="310" width="10" height="8" rx="3" fill="#E0E0E0"/>
+  <rect x="270" y="310" width="10" height="8" rx="3" fill="#E0E0E0"/>
+  <!-- Tekst -->
+  <text x="90" y="380" font-family="'Montserrat', Arial, sans-serif" font-size="45" font-weight="bold" fill="white">
+    My trip planner
+  </text>
+</svg>
