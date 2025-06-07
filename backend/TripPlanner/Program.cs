@@ -1,5 +1,6 @@
 ﻿using WebApplication1.Services;
 using Neo4j.Driver; // <--- Dodano za Neo4j
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,12 +32,13 @@ builder.Services.AddScoped<FlixBusService>();
 
 // Neo4j konfiguracija
 builder.Services.AddSingleton(GraphDatabase.Driver(
-    "neo4j+s://65b4ca19.databases.neo4j.io",
-    AuthTokens.Basic("neo4j", "Gh9DIh0CEJdusYaQk7VzHg-9dDWIVO5OgrzIAgnPtuQ")));
-//"bolt://localhost:7687" ,                      
-//AuthTokens.Basic("neo4j", "password")));   //za lokalnu bazu
+    // "neo4j+s://65b4ca19.databases.neo4j.io",
+    // AuthTokens.Basic("neo4j", "Gh9DIh0CEJdusYaQk7VzHg-9dDWIVO5OgrzIAgnPtuQ")));
+    "bolt://localhost:7687" ,                      
+    AuthTokens.Basic("neo4j", "password")));   //za lokalnu bazu
 
 builder.Services.AddSingleton<AddAllService>();
+builder.Services.AddSingleton<GraphSearchService>();
 
 builder.Services.AddHttpClient("OpenRouteService");
 builder.Services.AddScoped<OpenRouteServiceService>();
@@ -266,6 +268,22 @@ app.MapGet("/algoritam", async (AmadeusService amadeusService, OpenRouteServiceS
 
     return Results.Ok(routes);
 });
+
+app.MapGet("/api/optimal-trip", async (
+    GraphSearchService graphService,
+    string from,
+    string to,
+    DateTime departureAfter,
+    string optimizeFor  // "price" ili "duration"
+) =>
+{
+    var path = await graphService.FindTopOptimalTripsOffline(from, to, departureAfter, optimizeFor);
+
+    return path.Any()
+        ? Results.Ok(new { from, to, path })
+        : Results.NotFound($"No path found from '{from}' to '{to}'");
+});
+
 
 
 app.Run();
