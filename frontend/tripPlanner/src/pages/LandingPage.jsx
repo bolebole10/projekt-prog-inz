@@ -41,7 +41,7 @@ const LandingPage = () => {
               };
             } else {
               // Fallback to default image if no result
-              console.log(`No image found for ${cityName}, using fallback`);
+              // console.log(`No image found for ${cityName}, using fallback`);
               cityImagesObj[city.name] = {
                 url: `https://source.unsplash.com/featured/?${encodeURIComponent(cityName)},city`,
                 alt: `${cityName} city`
@@ -72,7 +72,7 @@ const LandingPage = () => {
               };
             } else {
               // Fallback to default image if no result
-              console.log(`No image found for destination ${destCity}, using fallback`);
+              // console.log(`No image found for destination ${destCity}, using fallback`);
               tripImagesObj[key] = {
                 url: `https://source.unsplash.com/featured/?${encodeURIComponent(destCity)},landmark`,
                 alt: `${destCity} destination`
@@ -99,7 +99,7 @@ const LandingPage = () => {
     // Track Unsplash API download when component unmounts
     return () => {
       // This would ideally be done with a tracking endpoint, but for simplicity we'll just log
-      console.log('Tracking Unsplash downloads');
+      // console.log('Tracking Unsplash downloads');
     };
   }, []);
   return (

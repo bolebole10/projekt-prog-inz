@@ -9,7 +9,6 @@ import {
   incrementCityScore,
   IncrementTripScoreAsync,
   getAlgorithmResult,
-  getOptimalTrip
 } from "../services/apiService";
 import SearchForm from "./SearchForm";
 import ResultsDisplay from "./ResultsDisplay";
@@ -36,9 +35,10 @@ const SearchComponent = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [flightSearchResults, setFlightSearchResults] = useState([]);
   const [busSearchResults, setBusSearchResults] = useState([]);
+  const [busSearchResultsReturn, setBusSearchResultsReturn] = useState([]);
   const [carRouteResults, setCarRouteResults] = useState(null);
   const [algorithmResults, setAlgorithmResults] = useState(null);
-  const [optimalResults, setOptimalResults] = useState(null);
+  const [algorithmReturnResults, setAlgorithmReturnResults] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState("algoritam");
   
@@ -120,9 +120,15 @@ const SearchComponent = () => {
   // Toggle trip type function
   const toggleTripType = (type) => {
     setTripType(type);
-    if (type === "oneWay") {
-      setToDate("");
-    }
+    setToDate("");
+    setFromDate("");
+    resetPagination();
+    setAlgorithmResults(null);
+    setAlgorithmReturnResults(null);
+    setFlightSearchResults([]);
+    setBusSearchResults([]);
+    setBusSearchResultsReturn([]);
+    setCarRouteResults(null);
   };
 
   const handleTabChange = (tab) => {
@@ -140,6 +146,7 @@ const SearchComponent = () => {
   
   // Function to handle the search submission
   const handleSearch = async () => {
+    console.log(fromDate, toDate);
     // Validate that we have all required fields
     if (!selectedLocation || !selectedDestination || !fromDate) {
       alert("Please fill in all required fields");
@@ -164,23 +171,20 @@ const SearchComponent = () => {
           fromDate
         );
         setAlgorithmResults(algorithmData);
+
+        if(tripType === "roundTrip") {
+          const algorithmDataReturn = await getAlgorithmResult(
+            selectedDestination.city, 
+            selectedLocation.city, 
+            toDate
+          );
+          setAlgorithmReturnResults(algorithmDataReturn);
+        }
+        // console.log(algorithmData); 
       } catch (error) {
         console.error("Algorithm search error:", error);
         setAlgorithmResults(null);
-      }
-
-      // Call optimal trip endpoint
-      try {
-        const optimalData = await getOptimalTrip(
-          selectedLocation.city,
-          selectedDestination.city,
-          fromDate,
-          'price' // Default optimization, could be added as a user option
-        );
-        setOptimalResults(optimalData);
-      } catch (error) {
-        console.error("Optimal trip search error:", error);
-        setOptimalResults(null);
+        setAlgorithmReturnResults(null);
       }
 
       // Search for buses
@@ -197,6 +201,23 @@ const SearchComponent = () => {
         setBusSearchResults(busResults.journeys);
       } else {
         setBusSearchResults([]);
+      }
+
+      if(tripType === "roundTrip") {
+        const busParamsReturn = {
+          from: selectedDestination.city,
+          to: selectedLocation.city,
+          date: toDate,
+        };
+        
+        // const busResultsReturn = await searchBuses(busParamsReturn);
+        const busResultsReturn = [];
+        
+        if (busResultsReturn && busResultsReturn.journeys) {
+          setBusSearchResultsReturn(busResultsReturn.journeys);
+        } else {
+          setBusSearchResultsReturn([]);
+        }
       }
 
       // Search for flights
@@ -220,9 +241,17 @@ const SearchComponent = () => {
           from: selectedLocation.city,
           to: selectedDestination.city
         };
-        
-        // Get car route information
         const carRouteData = await getCarRoute(carParams);
+
+        let carParamsReturn = null;
+        let carRouteDataReturn = null;
+        if(tripType === "roundTrip") {
+          carParamsReturn = {
+            from: selectedDestination.city,
+            to: selectedLocation.city
+          }; 
+          carRouteDataReturn = await getCarRoute(carParamsReturn);
+        }
         
         // Find nearby airports for origin
         const originAirports = await getAirportsInRadius(selectedLocation.city, 200);
@@ -233,6 +262,7 @@ const SearchComponent = () => {
         // Combine all car data
         const combinedCarData = {
           ...carRouteData,
+          ...(carRouteDataReturn ? { return: carRouteDataReturn } : {}),
           nearbyAirports: {
             origin: originAirports,
             destination: destinationAirports
@@ -253,8 +283,12 @@ const SearchComponent = () => {
     } catch (error) {
       console.error("Search error:", error);
       alert(`Search failed: ${error.message}`);
+      setAlgorithmResults(null);
+      setAlgorithmReturnResults(null);
       setFlightSearchResults([]);
       setBusSearchResults([]);
+      setBusSearchResultsReturn([]);
+      setCarRouteResults(null);
     } finally {
       setIsSearching(false);
     }
@@ -299,9 +333,10 @@ const SearchComponent = () => {
           handleTabChange={handleTabChange}
           flightSearchResults={flightSearchResults}
           busSearchResults={busSearchResults}
+          busSearchResultsReturn={busSearchResultsReturn}
           carRouteResults={carRouteResults}
           algorithmResults={algorithmResults}
-          optimalResults={optimalResults}
+          algorithmReturnResults={algorithmReturnResults}
           selectedLocation={selectedLocation}
           selectedDestination={selectedDestination}
           sortFilter={sortFilter}

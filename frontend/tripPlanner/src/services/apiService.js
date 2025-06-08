@@ -50,7 +50,7 @@ export const formatDateForBus = (dateString) => {
  */
 export const searchFlights = async (params) => {
   try {
-    console.log("Flight search params:", params);
+    // console.log("Flight search params:", params);
     const queryParams = new URLSearchParams({
       origin: params.origin,
       destination: params.destination,
@@ -292,36 +292,6 @@ export const getAlgorithmResult = async (city1, city2, date) => {
     return await response.json();
   } catch (error) {
     console.error("Error in getAlgorithmRoutes:", error);
-    throw error;
-  }
-};
-
-
-//POZIV ZA API OPTIMAL TRIP
-export const getOptimalTrip = async (from, to, departureAfter, optimizeFor) => {
-  try {
-    const formattedDepartureAfter = departureAfter instanceof Date ? departureAfter.toISOString() : departureAfter;
-    const queryParams = new URLSearchParams({
-      from: from,
-      to: to,
-      departureAfter: formattedDepartureAfter,
-      optimizeFor: optimizeFor
-    });
-    const response = await fetch(`http://localhost:${BACKEND_PORT}/api/optimal-trip?${queryParams.toString()}`);
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.title || JSON.stringify(errorData) || errorMessage;
-      } catch (e) {
-        errorMessage = `${errorMessage}, ${response.statusText}`;
-      }
-      console.error('Error fetching optimal trip:', errorMessage);
-      throw new Error(errorMessage);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error in getOptimalTrip:", error.message);
     throw error;
   }
 };
