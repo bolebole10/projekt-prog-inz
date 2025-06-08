@@ -5,12 +5,15 @@ import SearchComponent from "../components/SearchComponent";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlane, faSearch, faGlobe, faEnvelope, faLink, faShareAlt, faMapMarkerAlt, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
 import { getTopSearchedCities, getTopSearchedTrips } from "../services/apiService";
+import { getCityPhoto, getTripPhoto } from "../services/unsplashService";
 
 const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("destinations");
   const [popularCities, setPopularCities] = useState([]);
   const [popularTrips, setPopularTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cityImages, setCityImages] = useState({});
+  const [tripImages, setTripImages] = useState({});
   
   useEffect(() => {
     const fetchPopularData = async () => {
@@ -21,6 +24,69 @@ const LandingPage = () => {
         
         setPopularCities(cities);
         setPopularTrips(trips);
+        
+        // Fetch images for cities
+        const cityImagesObj = {};
+        for (const city of cities) {
+          // Try to get a very specific image of the city
+          const cityName = city.name.trim();
+          try {
+            // First attempt with the most specific query
+            const photoData = await getCityPhoto(cityName);
+            
+            if (photoData) {
+              cityImagesObj[city.name] = {
+                url: photoData.urls.regular,
+                alt: `${cityName} cityscape`
+              };
+            } else {
+              // Fallback to default image if no result
+              console.log(`No image found for ${cityName}, using fallback`);
+              cityImagesObj[city.name] = {
+                url: `https://source.unsplash.com/featured/?${encodeURIComponent(cityName)},city`,
+                alt: `${cityName} city`
+              };
+            }
+          } catch (error) {
+            console.error(`Error fetching image for ${cityName}:`, error);
+            // Provide a backup image URL
+            cityImagesObj[city.name] = {
+              url: `https://source.unsplash.com/featured/?${encodeURIComponent(cityName)},city`,
+              alt: `${cityName} city`
+            };
+          }
+        }
+        setCityImages(cityImagesObj);
+        
+        // Fetch images for trips
+        const tripImagesObj = {};
+        for (const trip of trips) {
+          const key = `${trip.fromCity}-${trip.toCity}`;
+          const destCity = trip.toCity.trim();
+          try {
+            const photoData = await getTripPhoto(trip.fromCity, destCity);
+            if (photoData) {
+              tripImagesObj[key] = {
+                url: photoData.urls.regular,
+                alt: `${destCity} destination`
+              };
+            } else {
+              // Fallback to default image if no result
+              console.log(`No image found for destination ${destCity}, using fallback`);
+              tripImagesObj[key] = {
+                url: `https://source.unsplash.com/featured/?${encodeURIComponent(destCity)},landmark`,
+                alt: `${destCity} destination`
+              };
+            }
+          } catch (error) {
+            console.error(`Error fetching image for destination ${destCity}:`, error);
+            tripImagesObj[key] = {
+              url: `https://source.unsplash.com/featured/?${encodeURIComponent(destCity)},landmark`,
+              alt: `${destCity} destination`
+            };
+          }
+        }
+        setTripImages(tripImagesObj);
       } catch (error) {
         console.error('Error fetching popular data:', error);
       } finally {
@@ -29,6 +95,12 @@ const LandingPage = () => {
     };
     
     fetchPopularData();
+    
+    // Track Unsplash API download when component unmounts
+    return () => {
+      // This would ideally be done with a tracking endpoint, but for simplicity we'll just log
+      console.log('Tracking Unsplash downloads');
+    };
   }, []);
   return (
     <div className="landing-page bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 min-h-screen">
@@ -104,8 +176,8 @@ const LandingPage = () => {
                   <DestinationCard
                     key={index}
                     city={city.name}
-                    country={city.country || "Europe"}
-                    image={`https://source.unsplash.com/featured/?${encodeURIComponent(city.name)},landmark`}
+                    image={cityImages[city.name]?.url || `https://source.unsplash.com/featured/?${encodeURIComponent(city.name)},landmark`}
+                    imageAlt={cityImages[city.name]?.alt || `${city.name} city`}
                     description={city.description || `Explore the beautiful city of ${city.name} with a popularity score of ${city.searchScore}`}
                   />
                 ))
@@ -124,10 +196,8 @@ const LandingPage = () => {
                     key={index}
                     origin={trip.fromCity}
                     destination={trip.toCity}
-                    originCountry={trip.fromCountry || "Europe"}
-                    destinationCountry={trip.toCountry || "Europe"}
-                    image={trip.imageUrl || `https://source.unsplash.com/featured/?${encodeURIComponent(trip.fromCity)},${encodeURIComponent(trip.toCity)},travel`}
-                    price={trip.price || "Best Price"}
+                    image={tripImages[`${trip.fromCity}-${trip.toCity}`]?.url || `https://source.unsplash.com/featured/?${encodeURIComponent(trip.toCity)},travel`}
+                    imageAlt={tripImages[`${trip.fromCity}-${trip.toCity}`]?.alt || `${trip.toCity} destination`}
                   />
                 ))
               ) : (
