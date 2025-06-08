@@ -104,21 +104,15 @@ const LandingPage = () => {
   }, []);
   return (
     <div className="landing-page bg-gradient-to-br from-blue-100 via-teal-100 to-yellow-50 min-h-screen">
-      <header className="bg-gradient-to-r from-teal-500 to-teal-600 text-white py-12 relative overflow-hidden">
+      <header className="bg-gradient-to-r from-teal-500 to-teal-600 text-white py-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-teal-300"></div>
         <div className="absolute -right-16 -top-16 w-64 h-64 bg-teal-400 rounded-full opacity-20"></div>
         <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-blue-400 rounded-full opacity-20"></div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="flex items-center mb-6 md:mb-0">
-              <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm mr-4">
-                <FontAwesomeIcon icon={faPlane} className="text-2xl text-white" />
-              </div>
-              <h1 className="text-3xl font-bold">Trip Planner</h1>
-            </div>
-            
-            <p className="text-lg max-w-md text-center md:text-right text-teal-50">
+          <div className="flex flex-row items-center justify-between gap-4">
+            <img src="/assets/my-trip-planner.svg" alt="Trip Planner Logo" className="h-40 w-auto" />
+            <p className="text-base text-left text-teal-50">
               Find and compare the best flight and bus deals for your next trip
             </p>
           </div>

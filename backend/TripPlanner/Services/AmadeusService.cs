@@ -41,7 +41,7 @@ namespace WebApplication1.Services
             var token = await GetAccessTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _client.GetAsync($"/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={date}&adults=1");
+            var response = await _client.GetAsync($"/v2/shopping/flight-offers?originLocationCode={origin}&destinationLocationCode={destination}&departureDate={date}&adults=1");   //&nonStop=True
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<JsonElement>();

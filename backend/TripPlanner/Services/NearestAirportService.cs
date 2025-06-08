@@ -67,8 +67,23 @@ public class NearestAirportService
         using var reader = new StreamReader(_airportCsvPath);
         using var csv = new CsvReader(reader, new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            HasHeaderRecord = false 
+            HasHeaderRecord = true
         });
+
+        csv.Read();
+        csv.ReadHeader();
+        if (!csv.Context.Reader.HeaderRecord.Contains("id") ||
+            !csv.Context.Reader.HeaderRecord.Contains("name") ||
+            !csv.Context.Reader.HeaderRecord.Contains("municipality") ||
+            !csv.Context.Reader.HeaderRecord.Contains("iso_country") ||
+            !csv.Context.Reader.HeaderRecord.Contains("iata_code") ||
+            !csv.Context.Reader.HeaderRecord.Contains("icao_code") ||
+            !csv.Context.Reader.HeaderRecord.Contains("latitude_deg") ||
+            !csv.Context.Reader.HeaderRecord.Contains("longitude_deg") ||
+            !csv.Context.Reader.HeaderRecord.Contains("type"))
+        {
+            throw new Exception("CSV file is missing required headers.");
+        }
 
         var records = new List<Airport>();
 
@@ -76,17 +91,18 @@ public class NearestAirportService
         {
             var airport = new Airport
             {
-                Id = csv.GetField<int>(0),
-                Name = csv.GetField<string>(1),
-                City = csv.GetField<string>(2),
-                Country = csv.GetField<string>(3),
-                IATA = csv.GetField<string>(4),
-                ICAO = csv.GetField<string>(5),
-                Lat = csv.GetField<double>(6),
-                Lon = csv.GetField<double>(7),
+                Id = csv.GetField<int>("id"),
+                Name = csv.GetField<string>("name"),
+                City = csv.GetField<string>("municipality"),
+                Country = csv.GetField<string>("iso_country"),
+                IATA = csv.GetField<string>("iata_code"),
+                ICAO = csv.GetField<string>("icao_code"),
+                Lat = csv.GetField<double>("latitude_deg"),
+                Lon = csv.GetField<double>("longitude_deg"),
+                size = csv.GetField<string>("type")
             };
 
-         
+
             if (!string.IsNullOrWhiteSpace(airport.IATA))
             {
                 records.Add(airport);
@@ -118,7 +134,7 @@ public class NearestAirportService
         [JsonPropertyName("lon")]
         public string lon { get; set; }
     }
-    
+
     public async Task<List<NearestAirportResult>> FindAirportsWithinRadiusAsync(string cityName, double radiusKm)
     {
         var (cityLat, cityLon) = await GeocodeCityAsync(cityName);
@@ -128,15 +144,20 @@ public class NearestAirportService
 
         foreach (var airport in airports)
         {
-            double distance = Haversine(cityLat, cityLon, airport.Lat, airport.Lon);
-            if (distance <= radiusKm)
+            // Filter by type
+            if (airport.size == "medium_airport" || airport.size == "large_airport")
             {
-                results.Add(new NearestAirportResult
+                double distance = Haversine(cityLat, cityLon, airport.Lat, airport.Lon);
+                if (distance <= radiusKm)
                 {
-                    AirportName = airport.Name,
-                    IATA = airport.IATA,
-                    DistanceKm = Math.Round(distance, 2)
-                });
+                    if (distance <= 70 || airport.size == "large_airport")
+                        results.Add(new NearestAirportResult
+                        {
+                            AirportName = airport.Name,
+                            IATA = airport.IATA,
+                            DistanceKm = Math.Round(distance, 2)
+                        });
+                }
             }
         }
 

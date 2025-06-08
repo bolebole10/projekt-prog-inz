@@ -22,7 +22,7 @@ const SearchComponent = () => {
   const [toDate, setToDate] = useState("");
   const [tripType, setTripType] = useState("roundTrip");
   const [sortFilter, setSortFilter] = useState("");
-  
+
   // Airport selection state
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -30,7 +30,7 @@ const SearchComponent = () => {
   const [showLocationList, setShowLocationList] = useState(false);
   const [filteredAirports, setFilteredAirports] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(false);
-  
+
   // Search and results state
   const [isSearching, setIsSearching] = useState(false);
   const [flightSearchResults, setFlightSearchResults] = useState([]);
@@ -143,7 +143,7 @@ const SearchComponent = () => {
     setVisibleReturnFlights(10);
     setVisibleBuses(10);
   };
-  
+
   // Function to handle the search submission
   const handleSearch = async () => {
     console.log(fromDate, toDate);
@@ -226,12 +226,12 @@ const SearchComponent = () => {
         destination: selectedDestination.iataCode,
         date: fromDate,
       };
-      
+
       // Add return date for round trips
       if (tripType === "roundTrip") {
         flightParams.returnDate = toDate;
       }
-      
+
       const flightResults = await searchFlights(flightParams);
       setFlightSearchResults(flightResults.data);
 
@@ -239,7 +239,7 @@ const SearchComponent = () => {
       try {
         const carParams = {
           from: selectedLocation.city,
-          to: selectedDestination.city
+          to: selectedDestination.city,
         };
         const carRouteData = await getCarRoute(carParams);
 
@@ -254,20 +254,27 @@ const SearchComponent = () => {
         }
         
         // Find nearby airports for origin
-        const originAirports = await getAirportsInRadius(selectedLocation.city, 200);
-        
+        const originAirports = await getAirportsInRadius(
+          selectedLocation.city,
+          200
+        );
+
         // Find nearby airports for destination
-        const destinationAirports = await getAirportsInRadius(selectedDestination.city, 200);
-        
+        const destinationAirports = await getAirportsInRadius(
+          selectedDestination.city,
+          200
+        );
+
         // Combine all car data
         const combinedCarData = {
           ...carRouteData,
           ...(carRouteDataReturn ? { return: carRouteDataReturn } : {}),
           nearbyAirports: {
             origin: originAirports,
-            destination: destinationAirports
-          }
+            destination: destinationAirports,
+          },
         };
+
 
         setCarRouteResults(combinedCarData);
       } catch (error) {
