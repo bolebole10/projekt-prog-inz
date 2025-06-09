@@ -50,7 +50,7 @@ export const formatDateForBus = (dateString) => {
  */
 export const searchFlights = async (params) => {
   try {
-    console.log("Flight search params:", params);
+    // console.log("Flight search params:", params);
     const queryParams = new URLSearchParams({
       origin: params.origin,
       destination: params.destination,
@@ -194,3 +194,104 @@ export const getAirportsInRadius = async (city, radius) => {
   }
 };
 
+export const incrementCityScore = async (city) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/increment-city-score?city=${encodeURIComponent(city)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("City score increment failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error incrementing city score:", error);
+    throw error;
+  }
+};
+
+export const IncrementTripScoreAsync = async (from, to) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/increment-trip-score?fromCity=${encodeURIComponent(from)}&toCity=${encodeURIComponent(to)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Trip score increment failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error incrementing trip score:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get top searched cities
+ * @param {number} limit - Maximum number of cities to return (default: 3)
+ * @returns {Promise<Array>} - List of popular cities with their scores
+ */
+// Export as a named export
+export const getTopSearchedCities = async (limit = 3) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/popular/cities?limit=${limit}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch popular cities");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching popular cities:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get top searched trips
+ * @param {number} limit - Maximum number of trips to return (default: 3)
+ * @returns {Promise<Array>} - List of popular trips with their scores
+ */
+// Export as a named export
+export const getTopSearchedTrips = async (limit = 3) => {
+  try {
+    const response = await fetch(
+      `http://localhost:${BACKEND_PORT}/popular/trips?limit=${limit}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch popular trips");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching popular trips:", error);
+    throw error;
+  }
+};
+
+//POZIV ZA ALGORITAM API
+export const getAlgorithmResult = async (city1, city2, date) => {
+  try {
+    const formattedDate = date instanceof Date ? date.toISOString().split('T')[0] : date;
+    const queryParams = new URLSearchParams({
+      city1: city1,
+      city2: city2,
+      date: formattedDate
+    });
+    const response = await fetch(`http://localhost:${BACKEND_PORT}/algoritam?${queryParams.toString()}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error fetching algorithm routes:', errorData);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error in getAlgorithmRoutes:", error);
+    throw error;
+  }
+};

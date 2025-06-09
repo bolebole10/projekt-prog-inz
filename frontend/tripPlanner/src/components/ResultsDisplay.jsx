@@ -1,10 +1,11 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlane, faBus, faCar } from "@fortawesome/free-solid-svg-icons";
+import { faPlane, faBus, faCar, faRoute, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
 import FlightCard from "./FlightCard";
 import BusCard from "./BusCard";
 import CarCard from "./CarCard";
 import NearbyAirports from "./NearbyAirports";
+import AlgorithmCard from "./AlgorithmCard";
 
 import { sortFlightResults, sortBusResults } from "../services/sortingService";
 
@@ -14,7 +15,10 @@ const ResultsDisplay = ({
   handleTabChange,
   flightSearchResults,
   busSearchResults,
+  busSearchResultsReturn,
   carRouteResults,
+  algorithmResults,
+  algorithmReturnResults,
   selectedLocation,
   selectedDestination,
   sortFilter,
@@ -22,7 +26,6 @@ const ResultsDisplay = ({
   visibleOutboundFlights,
   visibleReturnFlights,
   visibleBuses,
-  visibleCars,
   setVisibleFlights,
   setVisibleOutboundFlights,
   setVisibleReturnFlights,
@@ -32,7 +35,7 @@ const ResultsDisplay = ({
   // Helper function to determine the heading text
   const getHeadingText = () => {
     if (isSearching) {
-      return `Searching for ${activeTab}...`;
+      return `Searching for Cheapest Route...`;
     }
     
     if (activeTab === "flights") {
@@ -48,62 +51,75 @@ const ResultsDisplay = ({
       return carRouteResults 
         ? "Car Route Details"
         : "No car route information available";
-    }
+    } else if (activeTab === "algoritam") {
+      return algorithmResults
+        ? "Cheapest Route"
+        : "No cheapest route available";
+    } 
   };
 
   return (
     <div className="max-w-5xl mx-auto mt-8" style={{ width: "85%" }}>
       {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
-            <button
-          onClick={() => handleTabChange("flights")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "flights"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            >
-          <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
-            </button>
-            <button
-          onClick={() => handleTabChange("buses")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "buses"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            >
-          <FontAwesomeIcon icon={faBus} className="mr-2" /> Buses
-            </button>
-            <button
-          onClick={() => handleTabChange("cars")}
-          className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
-            activeTab === "cars"
-              ? "bg-white text-teal-600 shadow-sm transform scale-105"
-              : "text-gray-600 hover:text-teal-500"
-          }`}
-            > 
-          <FontAwesomeIcon icon={faCar} className="mr-2" /> Car
-            </button>
-            
-          </div>
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-gray-100 rounded-xl p-1.5 shadow-md">
+          <button
+            onClick={() => handleTabChange("algoritam")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "algoritam"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faRoute} className="mr-2" /> Cheapest Route
+          </button>
+          <button
+            onClick={() => handleTabChange("flights")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "flights"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faPlane} className="mr-2" /> Flights
+          </button>
+          <button
+            onClick={() => handleTabChange("buses")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "buses"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          >
+            <FontAwesomeIcon icon={faBus} className="mr-2" /> Buses
+          </button>
+          <button
+            onClick={() => handleTabChange("cars")}
+            className={`py-3 px-8 rounded-lg font-medium text-base transition-all duration-200 ${
+              activeTab === "cars"
+                ? "bg-white text-teal-600 shadow-sm transform scale-105"
+                : "text-gray-600 hover:text-teal-500"
+            }`}
+          > 
+            <FontAwesomeIcon icon={faCar} className="mr-2" /> Car
+          </button>
         </div>
+      </div>
 
-        <h2 className="text-xl font-bold text-teal-700 mb-4">
-          {getHeadingText()}
-        </h2>
+      <h2 className="text-xl font-bold text-teal-700 mb-4">
+        {getHeadingText()}
+      </h2>
 
-        {/* Display search results based on active tab */}
+      {/* Display search results based on active tab */}
       {isSearching ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-teal-600"></div>
-          <p className="mt-2 text-teal-600">
-            Searching for the best {activeTab}...
-          </p>
+          <p className="mt-4 text-gray-500">Searching for the best options... This may take 10-20 seconds</p>
+          <p className="text-sm text-gray-400">We're comparing multiple routes to find your optimal travel plan</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
+
           {/* Flight tab content */}
           {activeTab === "flights" && (
             <>
@@ -166,36 +182,45 @@ const ResultsDisplay = ({
                   </button>
                 </div>
               )}
+
+              {/* If no flights found */}
+              {!(Array.isArray(flightSearchResults) && flightSearchResults.length > 0) && 
+               !(flightSearchResults?.outboundFlights) && (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
+                  <p className="text-gray-600">No flights found. Try adjusting your search criteria.</p>
+                </div>
+              )}
             </>
           )}
 
           {/* Bus tab content */}
           {activeTab === "buses" && (
             <div className="space-y-6">
-              {Array.isArray(busSearchResults) && busSearchResults.length > 0 ? (
-                <>
-                  {sortBusResults(busSearchResults, sortFilter).slice(0, visibleBuses).map((journey, index) => (
-                    <BusCard
-                      key={index}
-                      journey={journey}
-                    />
+              {busSearchResults && busSearchResults.length > 0 ? (
+                <div>
+                  {busSearchResults.slice(0, visibleBuses).map((journey, index) => (
+                    <div key={index} className="mb-4">
+                      <BusCard 
+                        journey={journey} 
+                        returnJourney={busSearchResultsReturn && busSearchResultsReturn.length > 0 && index < busSearchResultsReturn.length ? busSearchResultsReturn[index] : null} 
+                      />
+                    </div>
                   ))}
                   
-                  {/* Load more button for buses */}
-                  {busSearchResults.length > visibleBuses && (
-                    <div className="text-center mt-6">
-                      <button 
-                        onClick={() => setVisibleBuses(prev => prev + 10)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+                  {visibleBuses < busSearchResults.length && (
+                    <div className="text-center mt-4">
+                      <button
+                        onClick={() => setVisibleBuses(prevCount => prevCount + 5)}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        Load More Bus Routes
+                        Load More Buses
                       </button>
                     </div>
                   )}
-                </>
+                </div>
               ) : (
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
-                  <p className="text-gray-600">No bus routes found for this journey.</p>
+                  <p className="text-gray-600">No bus routes available for this search.</p>
                 </div>
               )}
             </div>
@@ -216,6 +241,22 @@ const ResultsDisplay = ({
               ) : (
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
                   <p className="text-gray-600">No car route information available for this journey.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Algoritam tab content */}
+          {activeTab === "algoritam" && (
+            <div className="space-y-6">
+              {algorithmResults ? (
+                <AlgorithmCard 
+                  algorithmResult={algorithmResults} 
+                  algorithmReturnResult={algorithmReturnResults}
+                />
+              ) : (
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center">
+                  <p className="text-gray-600">No cheapest route available. Please run a search first.</p>
                 </div>
               )}
             </div>

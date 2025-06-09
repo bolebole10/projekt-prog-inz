@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import {
-  searchAirports,
-  searchFlights,
-  searchBuses,
-  getCarRoute,
-  getAirportsInRadius,
+import { 
+  searchAirports, 
+  searchFlights, 
+  searchBuses, 
+  getCarRoute, 
+  getAirportsInRadius, 
   getNearestAirport,
+  incrementCityScore,
+  IncrementTripScoreAsync,
+  getAlgorithmResult,
 } from "../services/apiService";
 import SearchForm from "./SearchForm";
 import ResultsDisplay from "./ResultsDisplay";
@@ -32,10 +35,13 @@ const SearchComponent = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [flightSearchResults, setFlightSearchResults] = useState([]);
   const [busSearchResults, setBusSearchResults] = useState([]);
+  const [busSearchResultsReturn, setBusSearchResultsReturn] = useState([]);
   const [carRouteResults, setCarRouteResults] = useState(null);
+  const [algorithmResults, setAlgorithmResults] = useState(null);
+  const [algorithmReturnResults, setAlgorithmReturnResults] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeTab, setActiveTab] = useState("flights");
-
+  const [activeTab, setActiveTab] = useState("algoritam");
+  
   // Pagination state
   const [visibleFlights, setVisibleFlights] = useState(10);
   const [visibleOutboundFlights, setVisibleOutboundFlights] = useState(10);
@@ -114,9 +120,15 @@ const SearchComponent = () => {
   // Toggle trip type function
   const toggleTripType = (type) => {
     setTripType(type);
-    if (type === "oneWay") {
-      setToDate("");
-    }
+    setToDate("");
+    setFromDate("");
+    resetPagination();
+    setAlgorithmResults(null);
+    setAlgorithmReturnResults(null);
+    setFlightSearchResults([]);
+    setBusSearchResults([]);
+    setBusSearchResultsReturn([]);
+    setCarRouteResults(null);
   };
 
   const handleTabChange = (tab) => {
@@ -134,6 +146,8 @@ const SearchComponent = () => {
 
   // Function to handle the search submission
   const handleSearch = async () => {
+    console.log(fromDate, toDate);
+    // Validate that we have all required fields
     if (!selectedLocation || !selectedDestination || !fromDate) {
       alert("Please fill in all required fields");
       return;
@@ -147,9 +161,64 @@ const SearchComponent = () => {
     setIsSearching(true);
     setHasSearched(true);
     resetPagination();
-
+    
     try {
+      // Call algorithm endpoint
+      try {
+        const algorithmData = await getAlgorithmResult(
+          selectedLocation.city, 
+          selectedDestination.city, 
+          fromDate
+        );
+        setAlgorithmResults(algorithmData);
+
+        if(tripType === "roundTrip") {
+          const algorithmDataReturn = await getAlgorithmResult(
+            selectedDestination.city, 
+            selectedLocation.city, 
+            toDate
+          );
+          setAlgorithmReturnResults(algorithmDataReturn);
+        }
+        // console.log(algorithmData); 
+      } catch (error) {
+        console.error("Algorithm search error:", error);
+        setAlgorithmResults(null);
+        setAlgorithmReturnResults(null);
+      }
+
       // Search for buses
+      const busParams = {
+        from: selectedLocation.city,
+        to: selectedDestination.city,
+        date: fromDate,
+      };
+      
+      // const busResults = await searchBuses(busParams);
+      const busResults = [];
+      
+      if (busResults && busResults.journeys) {
+        setBusSearchResults(busResults.journeys);
+      } else {
+        setBusSearchResults([]);
+      }
+
+      if(tripType === "roundTrip") {
+        const busParamsReturn = {
+          from: selectedDestination.city,
+          to: selectedLocation.city,
+          date: toDate,
+        };
+        
+        // const busResultsReturn = await searchBuses(busParamsReturn);
+        const busResultsReturn = [];
+        
+        if (busResultsReturn && busResultsReturn.journeys) {
+          setBusSearchResultsReturn(busResultsReturn.journeys);
+        } else {
+          setBusSearchResultsReturn([]);
+        }
+      }
 
       // Search for flights
       const flightParams = {
@@ -172,10 +241,18 @@ const SearchComponent = () => {
           from: selectedLocation.city,
           to: selectedDestination.city,
         };
-
-        // Get car route information
         const carRouteData = await getCarRoute(carParams);
 
+        let carParamsReturn = null;
+        let carRouteDataReturn = null;
+        if(tripType === "roundTrip") {
+          carParamsReturn = {
+            from: selectedDestination.city,
+            to: selectedLocation.city
+          }; 
+          carRouteDataReturn = await getCarRoute(carParamsReturn);
+        }
+        
         // Find nearby airports for origin
         const originAirports = await getAirportsInRadius(
           selectedLocation.city,
@@ -191,22 +268,34 @@ const SearchComponent = () => {
         // Combine all car data
         const combinedCarData = {
           ...carRouteData,
+          ...(carRouteDataReturn ? { return: carRouteDataReturn } : {}),
           nearbyAirports: {
             origin: originAirports,
             destination: destinationAirports,
           },
         };
 
+
         setCarRouteResults(combinedCarData);
       } catch (error) {
         console.error("Car route search error:", error);
         setCarRouteResults(null);
       }
+
+
+      await incrementCityScore(selectedDestination.city); 
+      await IncrementTripScoreAsync(selectedLocation.city, selectedDestination.city);
+      
+
     } catch (error) {
       console.error("Search error:", error);
       alert(`Search failed: ${error.message}`);
+      setAlgorithmResults(null);
+      setAlgorithmReturnResults(null);
       setFlightSearchResults([]);
       setBusSearchResults([]);
+      setBusSearchResultsReturn([]);
+      setCarRouteResults(null);
     } finally {
       setIsSearching(false);
     }
@@ -251,7 +340,10 @@ const SearchComponent = () => {
           handleTabChange={handleTabChange}
           flightSearchResults={flightSearchResults}
           busSearchResults={busSearchResults}
+          busSearchResultsReturn={busSearchResultsReturn}
           carRouteResults={carRouteResults}
+          algorithmResults={algorithmResults}
+          algorithmReturnResults={algorithmReturnResults}
           selectedLocation={selectedLocation}
           selectedDestination={selectedDestination}
           sortFilter={sortFilter}
